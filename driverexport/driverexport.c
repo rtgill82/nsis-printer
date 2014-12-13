@@ -14,7 +14,7 @@
 #define fopen_s(pFile, filename, mode) fopen_s(pFile, filename, mode)
 #endif
 
-#define DRIVER_INFO_VERSION 3
+#define DRIVER_INFO_LEVEL 3
 #define DRIVER_INFO DRIVER_INFO_3
 
 #define TMPBUF_SIZE 5192
@@ -92,7 +92,7 @@ DWORD GetDriverBufSize(HANDLE hPrinter)
 	GetPrinterDriver(
 			hPrinter,
 			NULL,
-			DRIVER_INFO_VERSION,
+			DRIVER_INFO_LEVEL,
 			NULL,
 			0,
 			&pcbNeeded
@@ -202,7 +202,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	printf("Opened printer %S.\n", printer);
 	pcbNeeded = GetDriverBufSize(hPrinter);
 	driverBuf = (BYTE *) GlobalAlloc(GPTR, pcbNeeded*sizeof(BYTE));
-	rv = GetPrinterDriver(hPrinter, NULL, DRIVER_INFO_VERSION, driverBuf, pcbNeeded, &pcbNeeded);
+	rv = GetPrinterDriver(hPrinter, NULL, DRIVER_INFO_LEVEL, driverBuf, pcbNeeded, &pcbNeeded);
 	if (rv == 0) {
 		err = GetLastError();
 		puts("Error getting driver information.");

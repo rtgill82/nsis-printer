@@ -1,0 +1,14 @@
+#include <windows.h>
+#include "printdlg.h"
+
+IDD_PRNSEL DIALOG DISCARDABLE  100, 50, 175, 50
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Printer Select"
+FONT 8, "Helv"
+BEGIN
+	COMBOBOX    IDC_PRNCOMBO,5,15,160,40,CBS_DROPDOWNLIST
+	PUSHBUTTON  "&Ok",IDOK,120,30,50,15
+	CTEXT       "Please select your default printer:",
+	            IDC_STATIC,5,5,160,10,SS_SIMPLE
+END
+

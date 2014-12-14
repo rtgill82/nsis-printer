@@ -1,3 +1,4 @@
+#include <strsafe.h>
 #include <windows.h>
 #include "pluginapi.h"
 
@@ -302,7 +303,7 @@ int NSISCALL popint_or()
 void NSISCALL pushintptr(INT_PTR value)
 {
   TCHAR buffer[30];
-  wsprintf(buffer, sizeof(void*) > 4 ? _T("%Id") : _T("%d"), value);
+  StringCbPrintf(buffer, 30, sizeof(void*) > 4 ? _T("%Id") : _T("%d"), value);
   pushstring(buffer);
 }
 
@@ -319,9 +320,9 @@ void NSISCALL pusherrormessage(LPCTSTR msg, DWORD err)
                 NULL
             );
 
-        wsprintf(buffer, TEXT("%s: %s"), msg, errbuf);
+        StringCbPrintf(buffer, NSIS_VARSIZE, TEXT("%s: %s"), msg, errbuf);
     } else {
-        wsprintf(buffer, TEXT("%s"), msg);
+        StringCbPrintf(buffer, NSIS_VARSIZE, TEXT("%s"), msg);
     }
 
 	pushstring(buffer);

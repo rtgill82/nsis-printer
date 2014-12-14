@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <strsafe.h>
 #include <windows.h>
 #include <winspool.h>
 
@@ -110,7 +111,7 @@ nsEnumPorts(HWND hwndParent, int string_size,
 		pushstring(portinfo[i].pName);
 
 	GlobalFree(portinfo);
-    wsprintf(buffer, TEXT("%ld"), pcReturned);
+    StringCbPrintf(buffer, NSIS_VARSIZE, TEXT("%ld"), pcReturned);
     setuservariable(INST_R0, buffer);
 }
 
@@ -132,7 +133,7 @@ nsAddPort(HWND hwndParent, int string_size,
     /* Pop print monitor */
     popstring(buffer);
 	monbuf = GlobalAlloc(GPTR, NSIS_VARSIZE);
-	wsprintf(monbuf, TEXT(",XcvMonitor %s"), buffer);
+    StringCbPrintf(monbuf, NSIS_VARSIZE, TEXT(",XcvMonitor %s"), buffer);
 
     rv = OpenPrinter(monbuf, &hPrinter, &pd);
 	if (rv == FALSE) {

@@ -1,13 +1,16 @@
 CCPATH = /usr/bin
-CC  = $(CCPATH)/i586-pc-mingw32-gcc
-CXX = $(CCPATH)/i586-pc-mingw32-g++
-CFLAGS = -march=i386 -g3 -O0 -Wall -s
-DLLWRAP = $(CCPATH)/i586-pc-mingw32-dllwrap
-DLLTOOL = $(CCPATH)/i586-pc-mingw32-dlltool
-WINDRES = $(CCPATH)/i586-pc-mingw32-windres
+HOST=i686-w64-mingw32
+CC  = $(CCPATH)/$(HOST)-gcc
+CXX = $(CCPATH)/$(HOST)-g++
+DLLWRAP = $(CCPATH)/$(HOST)-dllwrap
+DLLTOOL = $(CCPATH)/$(HOST)-dlltool
+WINDRES = $(CCPATH)/$(HOST)-windres
+
+INCLUDE = -I../include
+CFLAGS = $(INCLUDE) -march=i386 -g3 -O0 -Wall -s
 
 DLL_NAME = printers.dll
-DLL_OBJS = printers.o
+DLL_OBJS = pluginapi.o printers.o
 DLL_EXP_DEF = printers.def
 DLL_EXP_LIB = libprinters.a
 DLL_LDLIBS = -lwinspool
@@ -31,7 +34,7 @@ $(DLL_EXP_LIB): $(DLL_EXP_DEF)
 	--output-lib $(DLL_EXP_LIB)
 
 $(RES_OBJS): printdlg.rc
-	$(WINDRES) -o $@ $<
+	$(WINDRES) $(INCLUDE) -o $@ $<
 
 $(DLL_EXP_DEF): $(DLL_OBJS)
 	$(DLLTOOL) --export-all --output-def $@ $(DLL_OBJS)

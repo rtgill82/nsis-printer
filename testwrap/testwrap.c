@@ -8,6 +8,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <tchar.h>
+// #include "nsis_tchar.h"
 
 
 /* specifies the maximum size of a string pushed,
@@ -21,7 +23,7 @@
 typedef struct stack_t 
 {
     struct stack_t *next;
-    char text[NSIS_MAX_STRLEN];
+    TCHAR text[NSIS_MAX_STRLEN];
 } stack_t;
 
 
@@ -42,14 +44,14 @@ BOOL empty(stack_t **stack)
    1st element pushed onto stack and inits underlying
    stack structure accordingly.
    */
-void pushstring(stack_t **stack, char *str, BOOL bottom)
+void pushstring(stack_t **stack, LPTSTR str, BOOL bottom)
 {
     stack_t *element;
 
     /* verify a valid stack (at least nonNULL) was provided */
     if (stack == NULL)
     {
-        printf("Error, passed NULL stack, unable to push [%s]\n", str);
+        printf("Error, passed NULL stack, unable to push [%S]\n", str);
         exit(5);
     }
 
@@ -57,7 +59,7 @@ void pushstring(stack_t **stack, char *str, BOOL bottom)
     element = (stack_t *)GlobalAlloc(GPTR /*fixed & zeroed*/, sizeof(stack_t));
     if (element == NULL)
     {
-        printf("Error, unable to allocate memory to push [%s] onto stack\n",
+        printf("Error, unable to allocate memory to push [%S] onto stack\n",
                 str);
         exit(4);
     }
@@ -77,7 +79,7 @@ void pushstring(stack_t **stack, char *str, BOOL bottom)
    in a manner compatible with how NSIS pops them
    copies top of stack to str
    */
-void popstring(stack_t **stack, char *str)
+void popstring(stack_t **stack, LPTSTR str)
 {
     stack_t *element;;
 
@@ -112,12 +114,12 @@ void popstring(stack_t **stack, char *str)
    copies str to user_vars[which] 
    prints warning if which is invalid and returns
    */
-void setuservar(char *user_vars, int which, const char *str)
+void setuservar(LPTSTR user_vars, int which, LPCTSTR str)
 {
-    char *val = NULL;
+    LPTSTR val = NULL;
     if ((which < 0) || (which >= MAXUSERVARS))
     {
-        printf("Warning attempting to set invalid user_var[%i] with %s\n",
+        printf("Warning attempting to set invalid user_var[%i] with %S\n",
                 which, str);
         return;
     }
@@ -137,9 +139,9 @@ void setuservar(char *user_vars, int which, const char *str)
    directly manipulating the string returned.
    returns NULL on error, such as invalid user var requested.
    */
-const char *getuservar(char *user_vars, int which)
+LPCTSTR getuservar(LPTSTR user_vars, int which)
 {
-    const char *val = NULL;
+    LPCTSTR val = NULL;
 
     if ((which < 0) || (which >= MAXUSERVARS))
     {
@@ -157,72 +159,79 @@ const char *getuservar(char *user_vars, int which)
 /* initializes default values
    presently just clears to 0, 
    */
-void initpredefvars(char *user_vars)
+void initpredefvars(LPTSTR user_vars)
 {
     int i;
     /* simply set $0-$9 and $R0-$R10 to 0 */
     for (i = 0; i < 20; i++)
-        setuservar(user_vars, i, "0");
+        setuservar(user_vars, i, _T("0"));
 
     /* set others to some reasonable value */
-    setuservar(user_vars, 20, "");     /* empty command line */
-    setuservar(user_vars, 21, ".\\");  /* $INSTDIR = current ??? */
-    setuservar(user_vars, 22, ".\\");  /* $OUTDIR */
-    setuservar(user_vars, 23, ".\\");  /* $EXEDIR */
-    setuservar(user_vars, 24, "1033"); /* $LANGUAGE=english */
+    setuservar(user_vars, 20, _T(""));     /* empty command line */
+    setuservar(user_vars, 21, _T(".\\"));  /* $INSTDIR = current ??? */
+    setuservar(user_vars, 22, _T(".\\"));  /* $OUTDIR */
+    setuservar(user_vars, 23, _T(".\\"));  /* $EXEDIR */
+    setuservar(user_vars, 24, _T("1033")); /* $LANGUAGE=english */
 }
 
 
 /* The exported API without name mangling */
 typedef void (*pluginFunc)
-    (HWND hwndParent, int string_size, char *variables, stack_t **stacktop);
+    (HWND hwndParent, int string_size, LPTSTR variables, stack_t **stacktop);
 
 
     /* returns pointer to function in plugin or exits with message on any error */
-pluginFunc getPluginFunction(const char *plugin, const char *exportedName)
+pluginFunc getPluginFunction(LPCTSTR plugin, LPCTSTR exportedName)
 {
     pluginFunc pFn = NULL;
+    char *_exportedName;
+    size_t len;
 
     HMODULE hMod = LoadLibrary(plugin);
     if (hMod == NULL)
     {
-        printf("Failed to load %s\n", plugin);
+        printf("Failed to load %S\n", plugin);
         exit(3);
     }
 
-    pFn = (pluginFunc) GetProcAddress(hMod, exportedName);
+    wcstombs_s(&len, NULL, 0, exportedName, 0);
+    _exportedName = GlobalAlloc(GPTR, (len + 1) * sizeof(char));
+    wcstombs_s(&len, _exportedName, len + 1, exportedName, len);
+    pFn = (pluginFunc) GetProcAddress(hMod, _exportedName);
     if (pFn == NULL)
     {
-        printf("Failed to obtain address of function %s in module %s\n",
+        printf("Failed to obtain address of function %S in module %S\n",
                 exportedName, plugin);
         exit(2);
     }
+
+    GlobalFree(_exportedName);
     return pFn;
 }
 
 
 /* displays the full contents of the stack and user variables */
-void showstuff(char *variables, stack_t **stacktop)
+void showstuff(LPTSTR variables, stack_t **stacktop)
 {
     int i;
     stack_t *element;
 
     printf("User variables are:\n");
     for (i = 0; i < 10; i++)
-        printf("$%i = [%s]\n", i, getuservar(variables, i));
+        printf("$%i = [%S]\n", i, getuservar(variables, i));
     for (i = 10; i < 20; i++)
-        printf("$R%i = [%s]\n", i, getuservar(variables, i));
-    printf("$CMDLINE  = [%s]\n", getuservar(variables, 20));
-    printf("$INSTDIR  = [%s]\n", getuservar(variables, 21));
-    printf("$OUTDIR   = [%s]\n", getuservar(variables, 22));
-    printf("$EXEDIR   = [%s]\n", getuservar(variables, 23));
-    printf("$LANGUAGE = [%s]\n", getuservar(variables, 24));
-    printf("Stack is %s\n", empty(stacktop)?"empty":"");
+        printf("$R%i = [%S]\n", i, getuservar(variables, i));
+    printf("$CMDLINE  = [%S]\n", getuservar(variables, 20));
+    printf("$INSTDIR  = [%S]\n", getuservar(variables, 21));
+    printf("$OUTDIR   = [%S]\n", getuservar(variables, 22));
+    printf("$EXEDIR   = [%S]\n", getuservar(variables, 23));
+    printf("$LANGUAGE = [%S]\n", getuservar(variables, 24));
+    printf("Stack is %S\n", empty(stacktop)?_T("empty") : _T(""));
     if (!empty(stacktop))  /* peek at all elements */
     {
         element = *stacktop;
         do {
-            printf("[%s]\n", element->text);
+            printf("[%S]\n", element->text);
             element = element->next;
         } while (element != NULL);
     }
@@ -232,7 +241,7 @@ void showstuff(char *variables, stack_t **stacktop)
 /* displays a single result pushed on to stack after returning from plugin
    sets global variable result to top of stack, overwritten on all calls.
    */
-char result[NSIS_MAX_STRLEN];
+TCHAR result[NSIS_MAX_STRLEN];
 void showresult(stack_t **stack) 
 {
     /* we expect a success or error message pushed on stack */
@@ -244,13 +253,13 @@ void showresult(stack_t **stack)
     else
     {
         popstring(stack, result);
-        printf("Found [%s] on stack and now stack is %sempty.\n",
+        printf("Found [%S] on stack and now stack is %Sempty.\n",
                 result, empty(stack)?"":"NOT ");
     }
 }
 
 
-int main(int argc, char *argv[])
+int _tmain(int argc, _TCHAR *argv[])
 {
     pluginFunc pFn;
     int i, j, pn=0, pf=0;
@@ -258,7 +267,7 @@ int main(int argc, char *argv[])
 
     /* these are passed to plugin */
     stack_t *stack = NULL;
-    char user_vars[NSIS_MAX_STRLEN*MAXUSERVARS];
+    TCHAR user_vars[NSIS_MAX_STRLEN*MAXUSERVARS];
 
     /* initialize to predefined stuff */
     initpredefvars(user_vars);
@@ -267,7 +276,7 @@ int main(int argc, char *argv[])
     /* check command line appears valid, else print basic help */
     if (argc < 3)
     {
-        printf("NSIS plugin wrapper/tester\nUsage: %s plugin function [args]\n", argv[0]);
+        printf("NSIS plugin wrapper/tester\nUsage: %S plugin function [args]\n", argv[0]);
         printf("Where plugin is the name (dll) of the plugin to load\n");
         printf("and function is the name of the exported function to invoke.\n");
         printf("User variables may be set using /VAR # str\n");
@@ -280,9 +289,9 @@ int main(int argc, char *argv[])
     /* get plugin and function to invoke and possibly user variables */
     for (i = 1; (i < argc) && !pf; i++)
     {
-        if (lstrcmp("/VAR", argv[i]) == 0)
+        if (lstrcmp(_T("/VAR"), argv[i]) == 0)
         {
-            setuservar(user_vars, atoi(argv[i+1]), argv[i+2]);
+            setuservar(user_vars, _ttoi(argv[i+1]), argv[i+2]);
             i+=2;
         }
         else if (!pn)
@@ -297,9 +306,9 @@ int main(int argc, char *argv[])
     /* now push items onto stack in reverse order */
     for (j=argc-1; j >= i; j--)
     {
-        if (lstrcmp("/VAR", argv[j-2]) == 0)
+        if (lstrcmp(_T("/VAR"), argv[j-2]) == 0)
         {
-            setuservar(user_vars, atoi(argv[j-1]), argv[j]);
+            setuservar(user_vars, _ttoi(argv[j-1]), argv[j]);
             j-=2;
         }
         else
@@ -320,7 +329,7 @@ int main(int argc, char *argv[])
     showstuff(user_vars, &stack);
 
     /* perform the call to plugin and display the results */
-    printf("now invoking %s.%s\n", argv[pn], argv[pf]);
+    printf("now invoking %S.%S\n", argv[pn], argv[pf]);
     pFn(NULL, NSIS_MAX_STRLEN, user_vars, &stack);
     showresult(&stack);
 

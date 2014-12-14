@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nsisplugin", "nsisplugin\ns
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "driverexport", "driverexport\driverexport.vcxproj", "{A2260CF8-A967-4795-920C-E3F33752E27F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testwrap", "testwrap\testwrap.vcxproj", "{C642466B-53E1-4BF5-8FD1-5028CF19240A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -21,6 +23,10 @@ Global
 		{A2260CF8-A967-4795-920C-E3F33752E27F}.Debug|Win32.Build.0 = Debug|Win32
 		{A2260CF8-A967-4795-920C-E3F33752E27F}.Release|Win32.ActiveCfg = Release|Win32
 		{A2260CF8-A967-4795-920C-E3F33752E27F}.Release|Win32.Build.0 = Release|Win32
+		{C642466B-53E1-4BF5-8FD1-5028CF19240A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C642466B-53E1-4BF5-8FD1-5028CF19240A}.Debug|Win32.Build.0 = Debug|Win32
+		{C642466B-53E1-4BF5-8FD1-5028CF19240A}.Release|Win32.ActiveCfg = Release|Win32
+		{C642466B-53E1-4BF5-8FD1-5028CF19240A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

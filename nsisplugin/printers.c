@@ -11,14 +11,16 @@
 extern "C" {
 #endif
 
-#define DRIVER_INFO_VERSION 3
+#define DRIVER_INFO_LEVEL 3
 #define DRIVER_INFO DRIVER_INFO_3
+
+#define LPPRINTER_INFO_LEVEL 4
+#define LPPRINTER_INFO LPPRINTER_INFO_4
 
 HANDLE g_hInstance = NULL;
 TCHAR *PrnName = NULL;
-DWORD dwPrintersNum = 0, dwLevel = 4;
-LPPRINTER_INFO_4 lpbPrintInfo4 = NULL;
-LPPRINTER_INFO_5 lpbPrintInfo5 = NULL;
+DWORD dwPrintersNum = 0;
+LPPRINTER_INFO lpbPrintInfo = NULL;
 
 /* Defined and used by Redmon 1.9. */
 typedef struct reconfig_s {
@@ -40,58 +42,31 @@ typedef struct reconfig_s {
 };
 
 static BOOL CALLBACK
-PrintDlgProc    ( HWND   hwnd,
-                  UINT   msg,
-                  WPARAM wParam,
-                  LPARAM lParam    );
+PrintDlgProc( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 void __declspec(dllexport)
 nsPrinterSelectDlg(HWND hwndParent,int string_size,
         LPTSTR variables, stack_t **stacktop)
 {
-    OSVERSIONINFO osVerInfo;
     DWORD dwNeeded = 0;
-    LPBYTE lpbPrinters = NULL;
 
 	EXDLL_INIT();
-
-    /* Detect OS Version */
-    ZeroMemory(&osVerInfo, sizeof(osVerInfo));
-    osVerInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-    GetVersionEx(&osVerInfo);
-
-    switch (osVerInfo.dwPlatformId) {
-    case VER_PLATFORM_WIN32_NT:
-        dwLevel = 4;   /* Use printer info level 4 for NT. */
-        break;
-    case VER_PLATFORM_WIN32_WINDOWS:
-        dwLevel = 5;   /* Use printer info level 5 for 9x. */
-        break;
-    }
-
     EnumPrinters(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS,
-            NULL, dwLevel, NULL, 0, &dwNeeded, &dwPrintersNum);
+            NULL, LPPRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &dwPrintersNum);
 
-    if (dwLevel == 4) {
-        lpbPrintInfo4 = (LPPRINTER_INFO_4) GlobalAlloc(GPTR, dwNeeded);
-        lpbPrinters = (LPBYTE) lpbPrintInfo4;
-    } else {
-        lpbPrintInfo5 = (LPPRINTER_INFO_5) GlobalAlloc(GPTR, dwNeeded);
-        lpbPrinters = (LPBYTE) lpbPrintInfo5;
-    }
-
-    if (lpbPrinters) {
+    lpbPrintInfo = (LPPRINTER_INFO) GlobalAlloc(GPTR, dwNeeded);
+    if (lpbPrintInfo) {
         if (!EnumPrinters(
             PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS,
             NULL,
-            dwLevel,
-            lpbPrinters,
+            LPPRINTER_INFO_LEVEL,
+            (LPBYTE) lpbPrintInfo,
             dwNeeded,
             &dwNeeded,
             &dwPrintersNum
         )) {
-            GlobalFree(lpbPrinters);
-            lpbPrinters = NULL;
+            GlobalFree(lpbPrintInfo);
+            lpbPrintInfo = NULL;
         }
     }
 
@@ -100,7 +75,6 @@ nsPrinterSelectDlg(HWND hwndParent,int string_size,
 
     pushstring(PrnName);
     GlobalFree(PrnName);
-    GlobalFree(lpbPrinters);
 }
 
 void __declspec(dllexport)
@@ -418,17 +392,9 @@ PrintDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         SendMessage(prnCombo,
                 CB_ADDSTRING, 0, (LPARAM) "None (Printing Disabled)");
 
-        switch (dwLevel) {
-        case 4:
-            for (idx = 0; idx < dwPrintersNum; idx++)
-                SendMessage(prnCombo,CB_ADDSTRING,
-                        0, (LPARAM) lpbPrintInfo4[idx].pPrinterName);
-            break;
-        case 5:
-            for (idx = 0; idx < dwPrintersNum; idx++)
-                SendMessage(prnCombo, CB_ADDSTRING,
-                        0, (LPARAM) lpbPrintInfo5[idx].pPrinterName);
-            break;
+        for (idx = 0; idx < dwPrintersNum; idx++) {
+            SendMessage(prnCombo, CB_ADDSTRING, 0,
+                    (LPARAM) lpbPrintInfo[idx].pPrinterName);
         }
 
         SendMessage(prnCombo, CB_SETCURSEL, 0, 0);
@@ -444,7 +410,7 @@ PrintDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             } else {
                 len = SendMessage(prnCombo, CB_GETLBTEXTLEN, idx, 0);
                 PrnName = (TCHAR *)
-                    GlobalReAlloc(PrnName, (len + 1)*sizeof(TCHAR), 0);
+                    GlobalReAlloc(PrnName, (len+1)*sizeof(TCHAR), 0);
                 SendMessage(prnCombo, CB_GETLBTEXT, idx, (LPARAM) PrnName);
             }
 

@@ -102,8 +102,8 @@ nsEnumPorts(HWND hwndParent, int string_size,
 
     if (rv != TRUE) {
         err = GetLastError();
-        pusherrormessage(TEXT("Unable to enumerate ports"), err);
-        setuservariable(INST_R0, TEXT("-1"));
+        pusherrormessage(_T("Unable to enumerate ports"), err);
+        setuservariable(INST_R0, _T("-1"));
         return;
     }
 
@@ -111,7 +111,7 @@ nsEnumPorts(HWND hwndParent, int string_size,
 		pushstring(portinfo[i].pName);
 
 	GlobalFree(portinfo);
-    StringCbPrintf(buffer, NSIS_VARSIZE, TEXT("%ld"), pcReturned);
+    StringCbPrintf(buffer, NSIS_VARSIZE, _T("%ld"), pcReturned);
     setuservariable(INST_R0, buffer);
 }
 
@@ -133,13 +133,13 @@ nsAddPort(HWND hwndParent, int string_size,
     /* Pop print monitor */
     popstring(buffer);
 	monbuf = GlobalAlloc(GPTR, NSIS_VARSIZE);
-    StringCbPrintf(monbuf, NSIS_VARSIZE, TEXT(",XcvMonitor %s"), buffer);
+    StringCbPrintf(monbuf, NSIS_VARSIZE, _T(",XcvMonitor %s"), buffer);
 
     rv = OpenPrinter(monbuf, &hPrinter, &pd);
 	if (rv == FALSE) {
 		err = GetLastError();
-        pusherrormessage(TEXT("Unable to open XcvMonitor"), err);
-		setuservariable(INST_R0, TEXT("0"));
+        pusherrormessage(_T("Unable to open XcvMonitor"), err);
+		setuservariable(INST_R0, _T("0"));
 		return;
 	}
 	GlobalFree(monbuf);
@@ -148,7 +148,7 @@ nsAddPort(HWND hwndParent, int string_size,
 	popstring(buffer);
     rv = XcvData(
             hPrinter,
-            TEXT("AddPort"),
+            _T("AddPort"),
             (PBYTE) buffer,
             ((lstrlen(buffer)+1)*sizeof(TCHAR)),
             NULL,
@@ -159,14 +159,14 @@ nsAddPort(HWND hwndParent, int string_size,
 
 	if (rv == FALSE) {
 		err = GetLastError();
-		pusherrormessage(TEXT("Unable to add port"), err);
-		setuservariable(INST_R0, TEXT("0"));
+		pusherrormessage(_T("Unable to add port"), err);
+		setuservariable(INST_R0, _T("0"));
 		ClosePrinter(hPrinter);
 		return;
 	}
 
 	ClosePrinter(hPrinter);
-	setuservariable(INST_R0, TEXT("1"));
+	setuservariable(INST_R0, _T("1"));
 }
 
 void __declspec(dllexport)
@@ -218,8 +218,8 @@ nsAddPrinter(HWND hwndParent, int string_size,
         GlobalFree(printerInfo.pDriverName);
 
         err = GetLastError();
-        pusherrormessage(TEXT("Unable to add printer"), err);
-        setuservariable(INST_R0, TEXT("0"));
+        pusherrormessage(_T("Unable to add printer"), err);
+        setuservariable(INST_R0, _T("0"));
         return;
     }
 
@@ -228,7 +228,7 @@ nsAddPrinter(HWND hwndParent, int string_size,
     GlobalFree(printerInfo.pPortName);
     GlobalFree(printerInfo.pDriverName);
     ClosePrinter(hPrinter);
-    setuservariable(INST_R0, TEXT("1"));
+    setuservariable(INST_R0, _T("1"));
 }
 
 void __declspec(dllexport)
@@ -249,22 +249,22 @@ nsDeletePrinter(HWND hwndParent, int string_size,
     rv = OpenPrinter(buffer, &hPrinter, &pd);
     if (rv == FALSE) {
 		err = GetLastError();
-        pusherrormessage(TEXT("Unable to open printer"), err);
-		setuservariable(INST_R0, TEXT("0"));
+        pusherrormessage(_T("Unable to open printer"), err);
+		setuservariable(INST_R0, _T("0"));
 		return;
     }
 
     rv = DeletePrinter(hPrinter);
     if (rv == FALSE) {
         err = GetLastError();
-        pusherrormessage(TEXT("Unable to delete printer"), err);
+        pusherrormessage(_T("Unable to delete printer"), err);
 		ClosePrinter(hPrinter);
-        setuservariable(INST_R0, TEXT("-1"));
+        setuservariable(INST_R0, _T("-1"));
         return;
     }
 
 	ClosePrinter(hPrinter);
-    setuservariable(INST_R0, TEXT("1"));
+    setuservariable(INST_R0, _T("1"));
 }
 
 void __declspec(dllexport)
@@ -295,19 +295,19 @@ nsRedMonConfigurePort(HWND hwndParent, int string_size,
     lstrcpy(config.szPortName, buffer);
     popstring(buffer);
     lstrcpy(config.szCommand, buffer);
-    lstrcpy(config.szDescription, TEXT("Redirected Port"));
+    lstrcpy(config.szDescription, _T("Redirected Port"));
 
-    rv = OpenPrinter(TEXT(",XcvMonitor Redirected Port"), &hPrinter, &pd);
+    rv = OpenPrinter(_T(",XcvMonitor Redirected Port"), &hPrinter, &pd);
     if (rv == FALSE) {
         err = GetLastError();
-        pusherrormessage(TEXT("Unable to open XcvMonitor"), err);
-        setuservariable(INST_R0, TEXT("0"));
+        pusherrormessage(_T("Unable to open XcvMonitor"), err);
+        setuservariable(INST_R0, _T("0"));
         return;
     }
 
     rv = XcvData(
             hPrinter,
-            TEXT("SetConfig"),
+            _T("SetConfig"),
             (PBYTE)(&config),
             sizeof(RECONFIG),
             NULL,
@@ -317,12 +317,12 @@ nsRedMonConfigurePort(HWND hwndParent, int string_size,
         );
 	if (rv == FALSE) {
 		err = GetLastError();
-		pusherrormessage(TEXT("Unable to configure port"), err);
-		setuservariable(INST_R0, TEXT("0"));
+		pusherrormessage(_T("Unable to configure port"), err);
+		setuservariable(INST_R0, _T("0"));
 		return;
 	}
 
-	setuservariable(INST_R0, TEXT("1"));
+	setuservariable(INST_R0, _T("1"));
 }
 
 void __declspec(dllexport)
@@ -336,21 +336,21 @@ nsGetDefaultPrinter(HWND hwndParent, int string_size,
     dwNeeded = 0;
     GetDefaultPrinter(NULL, &dwNeeded);
     if (dwNeeded > NSIS_VARSIZE) {
-        pusherrormessage(TEXT("Not enough buffer space for default printer name"), 0);
-        setuservariable(INST_R0, TEXT("0"));
+        pusherrormessage(_T("Not enough buffer space for default printer name"), 0);
+        setuservariable(INST_R0, _T("0"));
         return;
     }
 
     rv = GetDefaultPrinter(buffer, &dwNeeded);
     if (rv == FALSE) {
         err = GetLastError();
-        pusherrormessage(TEXT("Unable to get default printer"), err);
-        setuservariable(INST_R0, TEXT("0"));
+        pusherrormessage(_T("Unable to get default printer"), err);
+        setuservariable(INST_R0, _T("0"));
         return;
     }
 
     pushstring(buffer);
-    setuservariable(INST_R0, TEXT("1"));
+    setuservariable(INST_R0, _T("1"));
 }
 
 void __declspec(dllexport)
@@ -365,12 +365,12 @@ nsSetDefaultPrinter(HWND hwndParent, int string_size,
     rv = SetDefaultPrinter(buffer);
     if (rv == FALSE) {
         err = GetLastError();
-        pusherrormessage(TEXT("Unable to set default printer"), err);
-        setuservariable(INST_R0, TEXT("0"));
+        pusherrormessage(_T("Unable to set default printer"), err);
+        setuservariable(INST_R0, _T("0"));
         return;
     }
 
-    setuservariable(INST_R0, TEXT("1"));
+    setuservariable(INST_R0, _T("1"));
 }
 
 BOOL WINAPI
@@ -400,14 +400,14 @@ PrintDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
         SendMessage(prnCombo, CB_SETCURSEL, 0, 0);
         PrnName = (TCHAR *) GlobalAlloc(GMEM_FIXED, 64);
-        lstrcpy(PrnName, TEXT(""));
+        lstrcpy(PrnName, _T(""));
         return TRUE;
 
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
         case IDOK:
             if ((idx = SendMessage(prnCombo, CB_GETCURSEL, 0, 0)) == 0) {
-                lstrcpy(PrnName, TEXT(""));
+                lstrcpy(PrnName, _T(""));
             } else {
                 len = SendMessage(prnCombo, CB_GETLBTEXTLEN, idx, 0);
                 PrnName = (TCHAR *)

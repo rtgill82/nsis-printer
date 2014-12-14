@@ -320,9 +320,9 @@ void NSISCALL pusherrormessage(LPCTSTR msg, DWORD err)
                 NULL
             );
 
-        StringCbPrintf(buffer, NSIS_VARSIZE, TEXT("%s: %s"), msg, errbuf);
+        StringCbPrintf(buffer, NSIS_VARSIZE, _T("%s: %s"), msg, errbuf);
     } else {
-        StringCbPrintf(buffer, NSIS_VARSIZE, TEXT("%s"), msg);
+        StringCbPrintf(buffer, NSIS_VARSIZE, _T("%s"), msg);
     }
 
 	pushstring(buffer);

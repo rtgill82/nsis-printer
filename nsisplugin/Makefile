@@ -9,7 +9,7 @@ WINDRES = $(CCPATH)/$(HOST)-windres
 INCLUDE = -I../include
 CFLAGS = $(INCLUDE) -march=i386 -g3 -O0 -Wall -s
 
-DLL_NAME = printers.dll
+DLL_NAME = printer.dll
 DLL_OBJS = pluginapi.o printers.o
 DLL_EXP_DEF = printers.def
 DLL_EXP_LIB = libprinters.a

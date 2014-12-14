@@ -73,10 +73,10 @@ LPTSTR ArchName(void)
 
 	switch (si.wProcessorArchitecture) {
 	case PROCESSOR_ARCHITECTURE_AMD64:
-		archName = TEXT("x64");
+		archName = _T("x64");
 		break;
 	case PROCESSOR_ARCHITECTURE_INTEL:
-		archName = TEXT("w32x86");
+		archName = _T("w32x86");
 		break;
 	default:
 		archName = NULL;
@@ -109,7 +109,7 @@ BOOL CreateOutputDir(DRIVER_INFO *driver_info)
 	rv = CreateDirectory(driver_info->pName, NULL);
 	if (rv == FALSE) return rv;
 
-	StringCbPrintf(tmpbuf, TMPBUF_SIZE, TEXT("%s\\%s"), driver_info->pName, ArchName());
+	StringCbPrintf(tmpbuf, TMPBUF_SIZE, _T("%s\\%s"), driver_info->pName, ArchName());
 	rv = CreateDirectory(tmpbuf, NULL);
 	if (rv == FALSE) return rv;
 
@@ -118,7 +118,7 @@ BOOL CreateOutputDir(DRIVER_INFO *driver_info)
 
 void CopyDriverFile(LPTSTR dir, LPTSTR driverfile)
 {
-	StringCbPrintf(tmpbuf, TMPBUF_SIZE, TEXT("%s\\%s\\%s"), dir, ArchName(), basename(driverfile));
+	StringCbPrintf(tmpbuf, TMPBUF_SIZE, _T("%s\\%s\\%s"), dir, ArchName(), basename(driverfile));
 	CopyFile(driverfile, tmpbuf, TRUE);
 }
 
@@ -126,8 +126,8 @@ void WriteDriverIni(DRIVER_INFO *driver_info)
 {
 	FILE *inifile;
 
-	StringCbPrintf(tmpbuf, TMPBUF_SIZE, TEXT("%s\\%s\\DRIVER.INI"), driver_info->pName, ArchName());
-	fopen_s(&inifile, tmpbuf, TEXT("w"));
+	StringCbPrintf(tmpbuf, TMPBUF_SIZE, _T("%s\\%s\\DRIVER.INI"), driver_info->pName, ArchName());
+	fopen_s(&inifile, tmpbuf, _T("w"));
 	fputs("[driver]\n", inifile);
 	fprintf(inifile, "version=%ld\n", driver_info->cVersion);
 	fprintf(inifile, "name=%S\n", driver_info->pName);

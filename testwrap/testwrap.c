@@ -254,7 +254,7 @@ void showresult(stack_t **stack)
     {
         popstring(stack, result);
         printf("Found [%S] on stack and now stack is %Sempty.\n",
-                result, empty(stack)?"":"NOT ");
+                result, empty(stack)?_T(""):_T("NOT "));
     }
 }
 

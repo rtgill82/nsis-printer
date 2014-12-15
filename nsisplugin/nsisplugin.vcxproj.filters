@@ -15,7 +15,7 @@
     <ClCompile Include="pluginapi.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="printers.c">
+    <ClCompile Include="printer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

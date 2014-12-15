@@ -12,7 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pluginapi.c" />
-    <ClCompile Include="printers.c" />
+    <ClCompile Include="printer.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="printdlg.rc" />

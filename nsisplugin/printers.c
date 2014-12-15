@@ -18,6 +18,12 @@ extern "C" {
 #define LPPRINTER_INFO_LEVEL 4
 #define LPPRINTER_INFO LPPRINTER_INFO_4
 
+#define ARCH_X86 0x0
+#define ARCH_X64 0x1
+
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
+TCHAR tmpbuf[NSIS_VARSIZE];
 HANDLE g_hInstance = NULL;
 TCHAR *PrnName = NULL;
 DWORD dwPrintersNum = 0;
@@ -44,6 +50,174 @@ typedef struct reconfig_s {
 
 static BOOL CALLBACK
 PrintDlgProc( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+void PrintError(DWORD err)
+{
+    TCHAR *buf;
+    buf = GlobalAlloc(GPTR, 1024);
+
+    FormatMessage(
+        FORMAT_MESSAGE_FROM_SYSTEM,
+        NULL,
+        err,
+        0,
+        buf,
+        1024,
+        NULL
+        );
+
+    printf("Error: %S", buf);
+    GlobalFree(buf);
+}
+
+LPTSTR
+allocstrcpy(LPTSTR str)
+{
+    LPTSTR newstr;
+
+    newstr = GlobalAlloc(GPTR, (_tcslen(str) + 1) * sizeof(TCHAR));
+    _tcscpy(newstr, str);
+
+    return newstr;
+}
+
+LPTSTR
+parse_depfiles(LPTSTR str)
+{
+    LPTSTR multisz;
+    LPTSTR p, pstr, pmultisz;
+    size_t cnt;
+
+    multisz = GlobalAlloc(GPTR, (_tcslen(str) + 2) * sizeof(TCHAR));
+    cnt = 0; pstr = str; pmultisz = multisz;
+    for (p = str; *p; p++) {
+        if (*p == _T(';')) {
+            _tcsncpy(pmultisz, pstr, cnt);
+            pmultisz[cnt] = _T('\0');
+            pmultisz += cnt + 1;
+            cnt = 0;
+            pstr = p + 1;
+        } else {
+            cnt++;
+        }
+    }
+
+    _tcscpy(pmultisz, _T(""));
+    pmultisz += 2;
+    _tcscpy(pmultisz, _T(""));
+
+    return multisz;
+}
+
+void
+read_driverini(LPTSTR inifile, DRIVER_INFO *di)
+{
+    LPTSTR buf;
+
+    buf = GlobalAlloc(GPTR, MAX_PATH * sizeof(TCHAR));
+
+    GetPrivateProfileString(_T("driver"), _T("name"), NULL, buf, MAX_PATH, inifile);
+    di->pName = allocstrcpy(buf);
+
+    GetPrivateProfileString(_T("driver"), _T("environment"), NULL, buf, MAX_PATH, inifile);
+    di->pEnvironment = allocstrcpy(buf);
+
+    GetPrivateProfileString(_T("driver"), _T("driver"), NULL, buf, MAX_PATH, inifile);
+    di->pDriverPath = allocstrcpy(buf);
+
+    GetPrivateProfileString(_T("driver"), _T("datafile"), NULL, buf, MAX_PATH, inifile);
+    di->pDataFile = allocstrcpy(buf);
+
+    GetPrivateProfileString(_T("driver"), _T("configfile"), NULL, buf, MAX_PATH, inifile);
+    di->pConfigFile = allocstrcpy(buf);
+
+    GetPrivateProfileString(_T("driver"), _T("helpfile"), NULL, buf, MAX_PATH, inifile);
+    di->pHelpFile = allocstrcpy(buf);
+
+    GetPrivateProfileString(_T("driver"), _T("depfiles"), NULL, buf, MAX_PATH, inifile);
+    di->pDependentFiles = parse_depfiles(buf);
+
+    GlobalFree(buf);
+}
+
+void
+cleanup_driverinfo(DRIVER_INFO *di)
+{
+    GlobalFree(di->pName);
+    GlobalFree(di->pEnvironment);
+    GlobalFree(di->pDriverPath);
+    GlobalFree(di->pDataFile);
+    GlobalFree(di->pConfigFile);
+    GlobalFree(di->pHelpFile);
+    GlobalFree(di->pDependentFiles);
+}
+
+DWORD
+copy_driverfiles(LPTSTR srcdir, DRIVER_INFO *di)
+{
+    DWORD pcbNeeded, err = 0;
+    LPTSTR dest, src, filename, driverdir;
+    size_t buflen1, buflen2, filemax = 0;
+    BOOL rv;
+
+    GetPrinterDriverDirectory(NULL, di->pEnvironment, 1, NULL, 0, &pcbNeeded);
+    driverdir = GlobalAlloc(GPTR, pcbNeeded);
+    GetPrinterDriverDirectory(NULL, di->pEnvironment, 1, (LPBYTE) driverdir, pcbNeeded, &pcbNeeded);
+
+    /* Find Max File Length */
+    filemax = MAX(filemax, _tcslen(di->pDriverPath));
+    filemax = MAX(filemax, _tcslen(di->pDataFile));
+    filemax = MAX(filemax, _tcslen(di->pConfigFile));
+    filemax = MAX(filemax, _tcslen(di->pHelpFile));
+
+    filename = di->pDependentFiles;
+    while (TRUE) {
+        size_t len = _tcslen(filename);
+        if (len == 0) break;
+        filemax = MAX(filemax, len);
+        filename = filename + len + 1;
+    }
+
+    buflen1 = (_tcslen(srcdir) + filemax + 2) * sizeof(TCHAR);
+    src = GlobalAlloc(GPTR, buflen1);
+    buflen2 = (_tcslen(driverdir) + filemax + 2) * sizeof(TCHAR);
+    dest = GlobalAlloc(GPTR, buflen2);
+
+    StringCbPrintf(src, buflen1, _T("%s\\%s"), srcdir, di->pDriverPath);
+    StringCbPrintf(dest, buflen2, _T("%s\\%s"), driverdir, di->pDriverPath);
+    rv = CopyFile(src, dest, FALSE);
+    if (rv == FALSE) {
+        err = GetLastError();
+        goto cleanup;
+    }
+
+    StringCbPrintf(src, buflen1, _T("%s\\%s"), srcdir, di->pDataFile);
+    StringCbPrintf(dest, buflen2, _T("%s\\%s"), driverdir, di->pDataFile);
+    CopyFile(src, dest, FALSE);
+    StringCbPrintf(src, buflen1, _T("%s\\%s"), srcdir, di->pConfigFile);
+    StringCbPrintf(dest, buflen2, _T("%s\\%s"), driverdir, di->pConfigFile);
+    CopyFile(src, dest, FALSE);
+    StringCbPrintf(src, buflen1, _T("%s\\%s"), srcdir, di->pHelpFile);
+    StringCbPrintf(dest, buflen2, _T("%s\\%s"), driverdir, di->pHelpFile);
+    CopyFile(src, dest, FALSE);
+
+    filename = di->pDependentFiles;
+    while (TRUE) {
+        size_t len = _tcslen(filename);
+        if (len == 0) break;
+        StringCbPrintf(src, buflen1, _T("%s\\%s"), srcdir, filename);
+        StringCbPrintf(dest, buflen2, _T("%s\\%s"), driverdir, filename);
+        rv = CopyFile(src, dest, FALSE);
+        filename = filename + len + 1;
+    }
+
+cleanup:
+    GlobalFree(driverdir);
+    GlobalFree(dest);
+    GlobalFree(src);
+
+    return err;
+}
 
 void __declspec(dllexport)
 nsPrinterSelectDlg(HWND hwndParent,int string_size,
@@ -173,9 +347,53 @@ void __declspec(dllexport)
 nsAddPrinterDriver(HWND hwndParent, int string_size,
 		LPTSTR variables, stack_t **stacktop)
 {
+    DWORD arch;
+    LPTSTR driverdir;
+    LPTSTR inifile;
+    DRIVER_INFO di;
 	DWORD err;
+    BOOL rv;
 
 	EXDLL_INIT();
+    ZeroMemory(&di, sizeof(DRIVER_INFO));
+
+    /* System Architecture (x86 or x64) */
+    popstring(buffer);
+    if (!lstrcmp(buffer, _T("x64"))) {
+        arch = ARCH_X64;
+    } else {
+        arch = ARCH_X86;
+    }
+
+    /* Driver Directory */
+    popstring(buffer);
+    StringCbPrintf(tmpbuf, NSIS_VARSIZE, _T("%s\\%s"),
+            buffer, (arch == ARCH_X64 ? _T("x64") : _T("w32x86")));
+    driverdir = allocstrcpy(tmpbuf);
+
+    StringCbPrintf(tmpbuf, NSIS_VARSIZE, _T("%s\\DRIVER.INI"), driverdir);
+    inifile = allocstrcpy(tmpbuf);
+    read_driverini(inifile, &di);
+    err = copy_driverfiles(driverdir, &di);
+    if (err) {
+        pusherrormessage(_T("Unable to copy driver files"), err);
+        setuservariable(INST_R0, _T("0"));
+        goto cleanup;
+    }
+
+    rv = AddPrinterDriver(NULL, DRIVER_INFO_LEVEL, (LPBYTE) &di);
+    if (rv == FALSE) {
+        err = GetLastError();
+        pusherrormessage(_T("Unable to add printer driver"), err);
+        setuservariable(INST_R0, _T("0"));
+        goto cleanup;
+    }
+
+    setuservariable(INST_R0, _T("1"));
+cleanup:
+    cleanup_driverinfo(&di);
+    GlobalFree(driverdir);
+    GlobalFree(inifile);
 }
 
 void __declspec(dllexport)

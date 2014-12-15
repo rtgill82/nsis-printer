@@ -8,7 +8,6 @@ FONT 8, "Helv"
 BEGIN
 	COMBOBOX    IDC_PRNCOMBO,5,15,160,40,CBS_DROPDOWNLIST
 	PUSHBUTTON  "&Ok",IDOK,120,30,50,15
-	CTEXT       "Please select your default printer:",
-	            IDC_STATIC,5,5,160,10,SS_SIMPLE
+	CTEXT	    "Please select your default printer:",
+		    IDC_STATIC,5,5,160,10,SS_SIMPLE
 END
-

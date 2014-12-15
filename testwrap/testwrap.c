@@ -20,7 +20,7 @@
 
 
 /* stack element, ie parameter to plugin, etc */
-typedef struct stack_t 
+typedef struct stack_t
 {
     struct stack_t *next;
     TCHAR text[NSIS_MAX_STRLEN];
@@ -40,7 +40,7 @@ BOOL empty(stack_t **stack)
 /* push an element onto the specified stack
    in a manner compatible with how NSIS pushes them
    copies str onto top of stack
-   if bottom is true, then assumes this is the 
+   if bottom is true, then assumes this is the
    1st element pushed onto stack and inits underlying
    stack structure accordingly.
    */
@@ -111,7 +111,7 @@ void popstring(stack_t **stack, LPTSTR str)
 
 
 /* sets indicated user variable, i.e.
-   copies str to user_vars[which] 
+   copies str to user_vars[which]
    prints warning if which is invalid and returns
    */
 void setuservar(LPTSTR user_vars, int which, LPCTSTR str)
@@ -133,7 +133,7 @@ void setuservar(LPTSTR user_vars, int which, LPCTSTR str)
 
 
 /* returns a pointer to the indicated user variable,
-   warning, pointer returned should be treated as 
+   warning, pointer returned should be treated as
    static buffer and copied to local buffer; contents
    may change via other calls to setuservar or by
    directly manipulating the string returned.
@@ -157,7 +157,7 @@ LPCTSTR getuservar(LPTSTR user_vars, int which)
 
 
 /* initializes default values
-   presently just clears to 0, 
+   presently just clears to 0,
    */
 void initpredefvars(LPTSTR user_vars)
 {
@@ -242,7 +242,7 @@ void showstuff(LPTSTR variables, stack_t **stacktop)
    sets global variable result to top of stack, overwritten on all calls.
    */
 TCHAR result[NSIS_MAX_STRLEN];
-void showresult(stack_t **stack) 
+void showresult(stack_t **stack)
 {
     /* we expect a success or error message pushed on stack */
     if (empty(stack))

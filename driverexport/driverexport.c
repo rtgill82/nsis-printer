@@ -7,6 +7,7 @@
 #include <tchar.h>
 #include <strsafe.h>
 #include <windows.h>
+#include <VersionHelpers.h>
 
 #ifdef UNICODE
 #define fopen_s(pFile, filename, mode) _wfopen_s(pFile, filename, mode)
@@ -30,6 +31,19 @@ LPTSTR basename(LPTSTR filepath)
         if (*p == L'\\') filename = p + 1;
 
     return filename;
+}
+
+LPTSTR WinVersion(void)
+{
+    if (IsWindows8Point1OrGreater()) {
+        return _T("Windows 8.1");
+    } else if (IsWindows8OrGreater()) {
+        return _T("Windows 8");
+    } else if (IsWindows7OrGreater()) {
+        return _T("Windows 7");
+    }
+
+    return NULL;
 }
 
 void PrintError(DWORD err)
@@ -105,11 +119,15 @@ BOOL CreateOutputDir(DRIVER_INFO *driver_info)
 {
     BOOL rv;
 
-    printf("Outputting driver files to \"%S\\%S\".\n", driver_info->pName, ArchName());
+    printf("Outputting driver files to \"%S\\%S\\%S\".\n", driver_info->pName, WinVersion(), ArchName());
     rv = CreateDirectory(driver_info->pName, NULL);
     if (rv == FALSE) return rv;
 
-    StringCbPrintf(tmpbuf, TMPBUF_SIZE, _T("%s\\%s"), driver_info->pName, ArchName());
+    StringCbPrintf(tmpbuf, TMPBUF_SIZE, _T("%s\\%s"), driver_info->pName, WinVersion());
+    rv = CreateDirectory(tmpbuf, NULL);
+    if (rv == FALSE) return rv;
+
+    StringCbPrintf(tmpbuf, TMPBUF_SIZE, _T("%s\\%s\\%s"), driver_info->pName, WinVersion(), ArchName());
     rv = CreateDirectory(tmpbuf, NULL);
     if (rv == FALSE) return rv;
 
@@ -118,7 +136,7 @@ BOOL CreateOutputDir(DRIVER_INFO *driver_info)
 
 void CopyDriverFile(LPTSTR dir, LPTSTR driverfile)
 {
-    StringCbPrintf(tmpbuf, TMPBUF_SIZE, _T("%s\\%s\\%s"), dir, ArchName(), basename(driverfile));
+    StringCbPrintf(tmpbuf, TMPBUF_SIZE, _T("%s\\%s\\%s\\%s"), dir, WinVersion(), ArchName(), basename(driverfile));
     CopyFile(driverfile, tmpbuf, TRUE);
 }
 
@@ -126,7 +144,7 @@ void WriteDriverIni(DRIVER_INFO *driver_info)
 {
     FILE *inifile;
 
-    StringCbPrintf(tmpbuf, TMPBUF_SIZE, _T("%s\\%s\\DRIVER.INI"), driver_info->pName, ArchName());
+    StringCbPrintf(tmpbuf, TMPBUF_SIZE, _T("%s\\%s\\%s\\DRIVER.INI"), driver_info->pName, WinVersion(), ArchName());
     fopen_s(&inifile, tmpbuf, _T("w"));
     fputs("[driver]\n", inifile);
     fprintf(inifile, "version=%ld\n", driver_info->cVersion);

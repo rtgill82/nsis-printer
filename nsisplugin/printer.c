@@ -133,19 +133,12 @@ cleanup_driverinfo(DRIVER_INFO *di)
     GlobalFree(di->pDependentFiles);
 }
 
-DWORD
-copy_driverfiles(LPTSTR srcdir, DRIVER_INFO *di)
+size_t
+max_driverfile_name(DRIVER_INFO *di)
 {
-    DWORD pcbNeeded, err = 0;
-    LPTSTR dest, src, filename, driverdir;
-    size_t srcbuflen, destbuflen, filemax = 0;
-    BOOL rv;
+    size_t filemax = 0;
+    LPTSTR filename;
 
-    GetPrinterDriverDirectory(NULL, di->pEnvironment, 1, NULL, 0, &pcbNeeded);
-    driverdir = GlobalAlloc(GPTR, pcbNeeded);
-    GetPrinterDriverDirectory(NULL, di->pEnvironment, 1, (LPBYTE) driverdir, pcbNeeded, &pcbNeeded);
-
-    /* Find Max File Length */
     filemax = MAX(filemax, _tcslen(di->pDriverPath));
     filemax = MAX(filemax, _tcslen(di->pDataFile));
     filemax = MAX(filemax, _tcslen(di->pConfigFile));
@@ -159,6 +152,22 @@ copy_driverfiles(LPTSTR srcdir, DRIVER_INFO *di)
         filename = filename + len + 1;
     }
 
+    return filemax;
+}
+
+DWORD
+copy_driverfiles(LPTSTR srcdir, DRIVER_INFO *di)
+{
+    DWORD pcbNeeded, err = 0;
+    LPTSTR dest, src, filename, driverdir;
+    size_t srcbuflen, destbuflen, filemax;
+    BOOL rv;
+
+    GetPrinterDriverDirectory(NULL, di->pEnvironment, 1, NULL, 0, &pcbNeeded);
+    driverdir = GlobalAlloc(GPTR, pcbNeeded);
+    GetPrinterDriverDirectory(NULL, di->pEnvironment, 1, (LPBYTE) driverdir, pcbNeeded, &pcbNeeded);
+
+    filemax = max_driverfile_name(di);
     srcbuflen = (_tcslen(srcdir) + filemax + 2) * sizeof(TCHAR);
     src = GlobalAlloc(GPTR, srcbuflen);
     destbuflen = (_tcslen(driverdir) + filemax + 2) * sizeof(TCHAR);
@@ -198,6 +207,42 @@ cleanup:
     GlobalFree(src);
 
     return err;
+}
+
+DWORD
+delete_driverfiles(DRIVER_INFO *di)
+{
+    DWORD pcbNeeded;
+    LPTSTR driverdir, filepath, filename;
+    size_t filemax, buflen;
+
+    GetPrinterDriverDirectory(NULL, di->pEnvironment, 1, NULL, 0, &pcbNeeded);
+    driverdir = GlobalAlloc(GPTR, pcbNeeded);
+    GetPrinterDriverDirectory(NULL, di->pEnvironment, 1, (LPBYTE) driverdir, pcbNeeded, &pcbNeeded);
+
+    filemax = max_driverfile_name(di);
+    buflen = (_tcslen(driverdir) + filemax + 2) * sizeof(TCHAR);
+    filepath = GlobalAlloc(GPTR, buflen);
+    StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pDriverPath);
+    DeleteFile(filepath);
+    StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pDataFile);
+    DeleteFile(filepath);
+    StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pConfigFile);
+    DeleteFile(filepath);
+    StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pHelpFile);
+    DeleteFile(filepath);
+
+    filename = di->pDependentFiles;
+    while (TRUE) {
+        size_t len = _tcslen(filename);
+        if (len == 0) break;
+        StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, filename);
+        DeleteFile(filepath);
+        filename = filename + len + 1;
+    }
+
+    GlobalFree(driverdir);
+    GlobalFree(filepath);
 }
 
 void __declspec(dllexport)
@@ -370,6 +415,7 @@ nsAddPrinterDriver(HWND hwndParent, int string_size,
         goto cleanup;
     }
 
+    delete_driverfiles(&di);
     setuservariable(INST_R0, _T("1"));
 cleanup:
     cleanup_driverinfo(&di);

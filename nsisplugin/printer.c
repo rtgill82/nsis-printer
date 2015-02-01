@@ -23,9 +23,11 @@ extern "C" {
 
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
+#define PRNNAME_SIZE 64
+
 TCHAR tmpbuf[NSIS_VARSIZE];
 HANDLE g_hInstance = NULL;
-TCHAR *PrnName = NULL;
+TCHAR *prnName = NULL;
 DWORD dwPrintersNum = 0;
 LPPRINTER_INFO lpbPrintInfo = NULL;
 
@@ -47,9 +49,6 @@ typedef struct reconfig_s {
     DWORD dwLogFileDebug;
     DWORD dwPrintError;
 };
-
-static BOOL CALLBACK
-PrintDlgProc( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 LPTSTR
 alloc_strcpy(LPTSTR str)
@@ -183,13 +182,27 @@ copy_driverfiles(LPTSTR srcdir, DRIVER_INFO *di)
 
     StringCbPrintf(src, srcbuflen, _T("%s\\%s"), srcdir, di->pDataFile);
     StringCbPrintf(dest, destbuflen, _T("%s\\%s"), driverdir, di->pDataFile);
-    CopyFile(src, dest, FALSE);
+    rv = CopyFile(src, dest, FALSE);
+    if (rv == FALSE) {
+        err = GetLastError();
+        goto cleanup;
+    }
+
     StringCbPrintf(src, srcbuflen, _T("%s\\%s"), srcdir, di->pConfigFile);
     StringCbPrintf(dest, destbuflen, _T("%s\\%s"), driverdir, di->pConfigFile);
-    CopyFile(src, dest, FALSE);
+    rv = CopyFile(src, dest, FALSE);
+    if (rv == FALSE) {
+        err = GetLastError();
+        goto cleanup;
+    }
+
     StringCbPrintf(src, srcbuflen, _T("%s\\%s"), srcdir, di->pHelpFile);
     StringCbPrintf(dest, destbuflen, _T("%s\\%s"), driverdir, di->pHelpFile);
-    CopyFile(src, dest, FALSE);
+    rv = CopyFile(src, dest, FALSE);
+    if (rv == FALSE) {
+        err = GetLastError();
+        goto cleanup;
+    }
 
     filename = di->pDependentFiles;
     while (TRUE) {
@@ -198,6 +211,10 @@ copy_driverfiles(LPTSTR srcdir, DRIVER_INFO *di)
         StringCbPrintf(src, srcbuflen, _T("%s\\%s"), srcdir, filename);
         StringCbPrintf(dest, destbuflen, _T("%s\\%s"), driverdir, filename);
         rv = CopyFile(src, dest, FALSE);
+        if (rv == FALSE) {
+            err = GetLastError();
+            goto cleanup;
+        }
         filename = filename + len + 1;
     }
 
@@ -212,9 +229,10 @@ cleanup:
 DWORD
 delete_driverfiles(DRIVER_INFO *di)
 {
-    DWORD pcbNeeded;
+    DWORD pcbNeeded, err = 0;
     LPTSTR driverdir, filepath, filename;
     size_t filemax, buflen;
+    BOOL rv;
 
     GetPrinterDriverDirectory(NULL, di->pEnvironment, 1, NULL, 0, &pcbNeeded);
     driverdir = GlobalAlloc(GPTR, pcbNeeded);
@@ -224,29 +242,104 @@ delete_driverfiles(DRIVER_INFO *di)
     buflen = (_tcslen(driverdir) + filemax + 2) * sizeof(TCHAR);
     filepath = GlobalAlloc(GPTR, buflen);
     StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pDriverPath);
-    DeleteFile(filepath);
+    rv = DeleteFile(filepath);
+    if (rv == FALSE) {
+        err = GetLastError();
+        goto cleanup;
+    }
+
     StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pDataFile);
-    DeleteFile(filepath);
+    rv = DeleteFile(filepath);
+    if (rv == FALSE) {
+        err = GetLastError();
+        goto cleanup;
+    }
+
     StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pConfigFile);
-    DeleteFile(filepath);
+    rv = DeleteFile(filepath);
+    if (rv == FALSE) {
+        err = GetLastError();
+        goto cleanup;
+    }
+
     StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pHelpFile);
-    DeleteFile(filepath);
+    rv = DeleteFile(filepath);
+    if (rv == FALSE) {
+        err = GetLastError();
+        goto cleanup;
+    }
 
     filename = di->pDependentFiles;
     while (TRUE) {
         size_t len = _tcslen(filename);
         if (len == 0) break;
         StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, filename);
-        DeleteFile(filepath);
+        rv = DeleteFile(filepath);
+        if (rv == FALSE) {
+            err = GetLastError();
+            goto cleanup;
+        }
         filename = filename + len + 1;
     }
 
+cleanup:
     GlobalFree(driverdir);
     GlobalFree(filepath);
+
+    return err;
+}
+
+static BOOL CALLBACK
+print_dlg_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    unsigned int idx, len;
+    static HWND prnCombo = NULL;
+
+    switch (msg) {
+    case WM_INITDIALOG:
+        prnCombo = GetDlgItem(hwnd, IDC_PRNCOMBO);
+        SendMessage(prnCombo, CB_RESETCONTENT, 0, 0);
+        SendMessage(prnCombo,
+            CB_ADDSTRING, 0, (LPARAM)_T("None (Printing Disabled)"));
+
+        for (idx = 0; idx < dwPrintersNum; idx++) {
+            SendMessage(prnCombo, CB_ADDSTRING, 0,
+                (LPARAM)lpbPrintInfo[idx].pPrinterName);
+        }
+
+        SendMessage(prnCombo, CB_SETCURSEL, 0, 0);
+        lstrcpy(prnName, _T(""));
+        return TRUE;
+
+    case WM_COMMAND:
+        switch (LOWORD(wParam)) {
+        case IDOK:
+            if ((idx = SendMessage(prnCombo, CB_GETCURSEL, 0, 0)) == 0) {
+                lstrcpy(prnName, _T(""));
+            }
+            else {
+                len = SendMessage(prnCombo, CB_GETLBTEXTLEN, idx, 0);
+                if ((len + 1)*sizeof(TCHAR) >= PRNNAME_SIZE) {
+                    prnName = (TCHAR *)
+                        GlobalReAlloc(prnName, (len + 1)*sizeof(TCHAR), 0);
+                }
+                SendMessage(prnCombo, CB_GETLBTEXT, idx, (LPARAM) prnName);
+            }
+
+            EndDialog(hwnd, IDOK);
+            break;
+        }
+        break;
+
+    default:
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 void __declspec(dllexport)
-nsPrinterSelectDlg(HWND hwndParent,int string_size,
+nsPrinterSelectDialog(HWND hwndParent,int string_size,
         LPTSTR variables, stack_t **stacktop)
 {
     DWORD dwNeeded = 0;
@@ -271,11 +364,12 @@ nsPrinterSelectDlg(HWND hwndParent,int string_size,
         }
     }
 
+    prnName = (TCHAR *) GlobalAlloc(GMEM_MOVEABLE, PRNNAME_SIZE);
     DialogBox(g_hInstance,
-            MAKEINTRESOURCE(IDD_PRNSEL), hwndParent, PrintDlgProc);
+            MAKEINTRESOURCE(IDD_PRNSEL), hwndParent, print_dlg_proc);
 
-    pushstring(PrnName);
-    GlobalFree(PrnName);
+    pushstring(prnName);
+    GlobalFree(prnName);
 }
 
 void __declspec(dllexport)
@@ -622,53 +716,6 @@ BOOL WINAPI
 DllMain(HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 {
     g_hInstance = hInst;
-    return TRUE;
-}
-
-static BOOL CALLBACK
-PrintDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    unsigned int idx, len;
-    static HWND prnCombo = NULL;
-
-    switch (msg) {
-    case WM_INITDIALOG:
-        prnCombo = GetDlgItem(hwnd, IDC_PRNCOMBO);
-        SendMessage(prnCombo, CB_RESETCONTENT, 0, 0);
-        SendMessage(prnCombo,
-                CB_ADDSTRING, 0, (LPARAM) "None (Printing Disabled)");
-
-        for (idx = 0; idx < dwPrintersNum; idx++) {
-            SendMessage(prnCombo, CB_ADDSTRING, 0,
-                    (LPARAM) lpbPrintInfo[idx].pPrinterName);
-        }
-
-        SendMessage(prnCombo, CB_SETCURSEL, 0, 0);
-        PrnName = (TCHAR *) GlobalAlloc(GMEM_FIXED, 64);
-        lstrcpy(PrnName, _T(""));
-        return TRUE;
-
-    case WM_COMMAND:
-        switch (LOWORD(wParam)) {
-        case IDOK:
-            if ((idx = SendMessage(prnCombo, CB_GETCURSEL, 0, 0)) == 0) {
-                lstrcpy(PrnName, _T(""));
-            } else {
-                len = SendMessage(prnCombo, CB_GETLBTEXTLEN, idx, 0);
-                PrnName = (TCHAR *)
-                    GlobalReAlloc(PrnName, (len+1)*sizeof(TCHAR), 0);
-                SendMessage(prnCombo, CB_GETLBTEXT, idx, (LPARAM) PrnName);
-            }
-
-            EndDialog(hwnd, IDOK);
-            break;
-        }
-        break;
-
-    default:
-        return FALSE;
-    }
-
     return TRUE;
 }
 

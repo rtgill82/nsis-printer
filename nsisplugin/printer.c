@@ -24,15 +24,15 @@ extern "C" {
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
 #define PRNNAME_SIZE 64
+#define BUF_SIZE (string_size * sizeof(TCHAR))
 
-TCHAR tmpbuf[NSIS_VARSIZE];
 HANDLE g_hInstance = NULL;
 TCHAR *prnName = NULL;
 DWORD dwPrintersNum = 0;
 LPPRINTER_INFO lpbPrintInfo = NULL;
 
 /* Defined and used by Redmon 1.9. */
-typedef struct reconfig_s {
+struct reconfig_s {
     DWORD dwSize;   /* sizeof this structure */
     DWORD dwVersion;    /* version number of RedMon */
     TCHAR szPortName[MAXSTR];
@@ -49,6 +49,29 @@ typedef struct reconfig_s {
     DWORD dwLogFileDebug;
     DWORD dwPrintError;
 };
+
+static void NSISCALL
+pusherrormessage (TCHAR *errbuf, int bufsiz, LPCTSTR msg, DWORD err)
+{
+  int len;
+  lstrcpy (errbuf, msg);
+
+  if (err > 0)
+    {
+      lstrcat (errbuf, _T (": "));
+      len = lstrlen(errbuf);
+      FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM,
+		     NULL,
+		     err,
+             0,
+             errbuf + len,
+             (bufsiz - len) * sizeof(TCHAR),
+             NULL
+        );
+    }
+
+  pushstring (errbuf);
+}
 
 LPTSTR
 alloc_strcpy(LPTSTR str)
@@ -380,8 +403,11 @@ nsEnumPorts(HWND hwndParent, int string_size,
     DWORD pcbNeeded, pcReturned;
     PORT_INFO_1 *portinfo;
     DWORD err; BOOL rv;
+    TCHAR *buf;
 
     EXDLL_INIT();
+    buf = GlobalAlloc(GPTR, BUF_SIZE);
+
     EnumPorts(NULL, 1, NULL, 0, &pcbNeeded, &pcReturned);
     portinfo = GlobalAlloc(GPTR, pcbNeeded);
 
@@ -396,17 +422,20 @@ nsEnumPorts(HWND hwndParent, int string_size,
 
     if (rv != TRUE) {
         err = GetLastError();
-        pusherrormessage(_T("Unable to enumerate ports"), err);
+        pusherrormessage(buf, BUF_SIZE, _T("Unable to enumerate ports"), err);
         setuservariable(INST_R0, _T("-1"));
-        return;
+        goto cleanup;
     }
 
     for (i = pcReturned - 1; i >= 0; i--)
         pushstring(portinfo[i].pName);
 
+    StringCbPrintf(buf, BUF_SIZE, _T("%ld"), pcReturned);
+    setuservariable(INST_R0, buf);
+
+cleanup:
+    GlobalFree(buf);
     GlobalFree(portinfo);
-    StringCbPrintf(buffer, NSIS_VARSIZE, _T("%ld"), pcReturned);
-    setuservariable(INST_R0, buffer);
 }
 
 void __declspec(dllexport)
@@ -417,6 +446,7 @@ nsAddPort(HWND hwndParent, int string_size,
     TCHAR *monbuf;
     DWORD dwNeeded, dwStatus;
     DWORD err; BOOL rv;
+    TCHAR *buf;
 
     PRINTER_DEFAULTS pd;
     pd.pDatatype = NULL;
@@ -424,27 +454,28 @@ nsAddPort(HWND hwndParent, int string_size,
     pd.DesiredAccess = SERVER_ACCESS_ADMINISTER;
 
     EXDLL_INIT();
+    buf = GlobalAlloc(GPTR, BUF_SIZE);
+    monbuf = GlobalAlloc(GPTR, BUF_SIZE);
+
     /* Pop print monitor */
-    popstring(buffer);
-    monbuf = GlobalAlloc(GPTR, NSIS_VARSIZE);
-    StringCbPrintf(monbuf, NSIS_VARSIZE, _T(",XcvMonitor %s"), buffer);
+    popstring(buf);
+    StringCbPrintf(monbuf, BUF_SIZE, _T(",XcvMonitor %s"), buf);
 
     rv = OpenPrinter(monbuf, &hPrinter, &pd);
     if (rv == FALSE) {
         err = GetLastError();
-        pusherrormessage(_T("Unable to open XcvMonitor"), err);
+        pusherrormessage(buf, BUF_SIZE, _T("Unable to open XcvMonitor"), err);
         setuservariable(INST_R0, _T("0"));
-        return;
+        goto cleanup;
     }
-    GlobalFree(monbuf);
 
     /* Pop port name */
-    popstring(buffer);
+    popstring(buf);
     rv = XcvData(
             hPrinter,
             _T("AddPort"),
-            (PBYTE) buffer,
-            ((lstrlen(buffer)+1)*sizeof(TCHAR)),
+            (PBYTE) buf,
+            ((lstrlen(buf)+1)*sizeof(TCHAR)),
             NULL,
             0,
             &dwNeeded,
@@ -453,14 +484,17 @@ nsAddPort(HWND hwndParent, int string_size,
 
     if (rv == FALSE) {
         err = GetLastError();
-        pusherrormessage(_T("Unable to add port"), err);
+        pusherrormessage(buf, BUF_SIZE, _T("Unable to add port"), err);
         setuservariable(INST_R0, _T("0"));
-        ClosePrinter(hPrinter);
-        return;
+        goto cleanup;
     }
 
-    ClosePrinter(hPrinter);
     setuservariable(INST_R0, _T("1"));
+
+cleanup:
+    ClosePrinter(hPrinter);
+    GlobalFree(buf);
+    GlobalFree(monbuf);
 }
 
 void __declspec(dllexport)
@@ -473,30 +507,33 @@ nsAddPrinterDriver(HWND hwndParent, int string_size,
     DRIVER_INFO di;
     DWORD err;
     BOOL rv;
+    TCHAR *buf1, *buf2;
 
     EXDLL_INIT();
     ZeroMemory(&di, sizeof(DRIVER_INFO));
+    buf1 = GlobalAlloc(GPTR, BUF_SIZE);
+    buf2 = GlobalAlloc(GPTR, BUF_SIZE);
 
     /* System Architecture (x86 or x64) */
-    popstring(buffer);
-    if (!lstrcmp(buffer, _T("x64"))) {
+    popstring(buf1);
+    if (!lstrcmp(buf1, _T("x64"))) {
         arch = ARCH_X64;
     } else {
         arch = ARCH_X86;
     }
 
     /* Driver Directory */
-    popstring(buffer);
-    StringCbPrintf(tmpbuf, NSIS_VARSIZE, _T("%s\\%s"),
-            buffer, (arch == ARCH_X64 ? _T("x64") : _T("w32x86")));
-    driverdir = alloc_strcpy(tmpbuf);
+    popstring(buf1);
+    StringCbPrintf(buf2, BUF_SIZE, _T("%s\\%s"),
+            buf1, (arch == ARCH_X64 ? _T("x64") : _T("w32x86")));
+    driverdir = alloc_strcpy(buf2);
 
-    StringCbPrintf(tmpbuf, NSIS_VARSIZE, _T("%s\\DRIVER.INI"), driverdir);
-    inifile = alloc_strcpy(tmpbuf);
+    StringCbPrintf(buf2, BUF_SIZE, _T("%s\\DRIVER.INI"), driverdir);
+    inifile = alloc_strcpy(buf2);
     read_driverini(inifile, &di);
     err = copy_driverfiles(driverdir, &di);
     if (err) {
-        pusherrormessage(_T("Unable to copy driver files"), err);
+        pusherrormessage(buf1, BUF_SIZE, _T("Unable to copy driver files"), err);
         setuservariable(INST_R0, _T("0"));
         goto cleanup;
     }
@@ -504,13 +541,14 @@ nsAddPrinterDriver(HWND hwndParent, int string_size,
     rv = AddPrinterDriver(NULL, DRIVER_INFO_LEVEL, (LPBYTE) &di);
     if (rv == FALSE) {
         err = GetLastError();
-        pusherrormessage(_T("Unable to add printer driver"), err);
+        pusherrormessage(buf1, BUF_SIZE, _T("Unable to add printer driver"), err);
         setuservariable(INST_R0, _T("0"));
         goto cleanup;
     }
 
     delete_driverfiles(&di);
     setuservariable(INST_R0, _T("1"));
+
 cleanup:
     cleanup_driverinfo(&di);
     GlobalFree(driverdir);
@@ -524,50 +562,51 @@ nsAddPrinter(HWND hwndParent, int string_size,
     PRINTER_INFO_2 printerInfo;
     HANDLE hPrinter;
     DWORD err;
+    TCHAR *buf;
 
     EXDLL_INIT();
     ZeroMemory(&printerInfo, sizeof(PRINTER_INFO_2));
+    buf = GlobalAlloc(GPTR, BUF_SIZE);
 
     FILE *f;
     f = fopen("C:\\nsisprinter.log", "w");
 
     /* Printer Name */
-    popstring(buffer);
-    printerInfo.pPrinterName = GlobalAlloc(GPTR, ((lstrlen(buffer)+1)*sizeof(TCHAR)));
-    lstrcpy(printerInfo.pPrinterName, buffer);
+    popstring(buf);
+    printerInfo.pPrinterName = GlobalAlloc(GPTR, ((lstrlen(buf)+1)*sizeof(TCHAR)));
+    lstrcpy(printerInfo.pPrinterName, buf);
     fprintf(f, "Printer Name: %S\n", printerInfo.pPrinterName); fflush(f);
 
     /* Port Name */
-    popstring(buffer);
-    printerInfo.pPortName = GlobalAlloc(GPTR, ((lstrlen(buffer)+1)*sizeof(TCHAR)));
-    lstrcpy(printerInfo.pPortName, buffer);
+    popstring(buf);
+    printerInfo.pPortName = GlobalAlloc(GPTR, ((lstrlen(buf)+1)*sizeof(TCHAR)));
+    lstrcpy(printerInfo.pPortName, buf);
     fprintf(f, "Port Name: %S\n", printerInfo.pPortName); fflush(f);
 
     /* Printer Driver */
-    popstring(buffer);
-    printerInfo.pDriverName = GlobalAlloc(GPTR, ((lstrlen(buffer)+1)*sizeof(TCHAR)));
-    lstrcpy(printerInfo.pDriverName, buffer);
+    popstring(buf);
+    printerInfo.pDriverName = GlobalAlloc(GPTR, ((lstrlen(buf)+1)*sizeof(TCHAR)));
+    lstrcpy(printerInfo.pDriverName, buf);
     fprintf(f, "Driver Name: %S\n", printerInfo.pDriverName); fflush(f);
 
     hPrinter = AddPrinter(NULL, 2, (LPBYTE) &printerInfo);
     fprintf(f, "hPrinter = %p\n", hPrinter); fflush(f);
     if (hPrinter == NULL) {
-        GlobalFree(printerInfo.pPrinterName);
-        GlobalFree(printerInfo.pPortName);
-        GlobalFree(printerInfo.pDriverName);
-
         err = GetLastError();
-        pusherrormessage(_T("Unable to add printer"), err);
+        pusherrormessage(buf, BUF_SIZE, _T("Unable to add printer"), err);
         setuservariable(INST_R0, _T("0"));
-        return;
+        goto cleanup;
     }
 
-    fclose(f);
-    GlobalFree(printerInfo.pPrinterName);
-    GlobalFree(printerInfo.pPortName);
-    GlobalFree(printerInfo.pDriverName);
-    ClosePrinter(hPrinter);
     setuservariable(INST_R0, _T("1"));
+
+cleanup:
+    fclose(f);
+    ClosePrinter(hPrinter);
+    GlobalFree(buf);
+    GlobalFree(printerInfo.pDriverName);
+    GlobalFree(printerInfo.pPortName);
+    GlobalFree(printerInfo.pPrinterName);
 }
 
 void __declspec(dllexport)
@@ -577,6 +616,7 @@ nsDeletePrinter(HWND hwndParent, int string_size,
     HANDLE hPrinter;
     BOOL rv;
     DWORD err;
+    TCHAR *buf;
 
     PRINTER_DEFAULTS pd;
     pd.pDatatype = NULL;
@@ -584,26 +624,29 @@ nsDeletePrinter(HWND hwndParent, int string_size,
     pd.DesiredAccess = PRINTER_ALL_ACCESS;
 
     EXDLL_INIT();
-    popstring(buffer);
-    rv = OpenPrinter(buffer, &hPrinter, &pd);
+    buf = GlobalAlloc(GPTR, BUF_SIZE);
+    popstring(buf);
+    rv = OpenPrinter(buf, &hPrinter, &pd);
     if (rv == FALSE) {
         err = GetLastError();
-        pusherrormessage(_T("Unable to open printer"), err);
+        pusherrormessage(buf, BUF_SIZE, _T("Unable to open printer"), err);
         setuservariable(INST_R0, _T("0"));
-        return;
+        goto cleanup;
     }
 
     rv = DeletePrinter(hPrinter);
     if (rv == FALSE) {
         err = GetLastError();
-        pusherrormessage(_T("Unable to delete printer"), err);
-        ClosePrinter(hPrinter);
+        pusherrormessage(buf, BUF_SIZE, _T("Unable to delete printer"), err);
         setuservariable(INST_R0, _T("-1"));
-        return;
+        goto cleanup;
     }
 
-    ClosePrinter(hPrinter);
     setuservariable(INST_R0, _T("1"));
+
+cleanup:
+    ClosePrinter(hPrinter);
+    GlobalFree(buf);
 }
 
 void __declspec(dllexport)
@@ -615,6 +658,7 @@ nsRedMonConfigurePort(HWND hwndParent, int string_size,
     PRINTER_DEFAULTS pd;
     DWORD dwNeeded, dwStatus;
     DWORD err; BOOL rv;
+    TCHAR *buf;
 
     EXDLL_INIT();
     ZeroMemory(&config, sizeof(RECONFIG));
@@ -630,18 +674,19 @@ nsRedMonConfigurePort(HWND hwndParent, int string_size,
     pd.pDevMode = NULL;
     pd.DesiredAccess = SERVER_ACCESS_ADMINISTER;
 
-    popstring(buffer);
-    lstrcpy(config.szPortName, buffer);
-    popstring(buffer);
-    lstrcpy(config.szCommand, buffer);
+    buf = GlobalAlloc(GPTR, BUF_SIZE);
+    popstring(buf);
+    lstrcpy(config.szPortName, buf);
+    popstring(buf);
+    lstrcpy(config.szCommand, buf);
     lstrcpy(config.szDescription, _T("Redirected Port"));
 
     rv = OpenPrinter(_T(",XcvMonitor Redirected Port"), &hPrinter, &pd);
     if (rv == FALSE) {
         err = GetLastError();
-        pusherrormessage(_T("Unable to open XcvMonitor"), err);
+        pusherrormessage(buf, BUF_SIZE, _T("Unable to open XcvMonitor"), err);
         setuservariable(INST_R0, _T("0"));
-        return;
+        goto cleanup;
     }
 
     rv = XcvData(
@@ -656,12 +701,15 @@ nsRedMonConfigurePort(HWND hwndParent, int string_size,
         );
     if (rv == FALSE) {
         err = GetLastError();
-        pusherrormessage(_T("Unable to configure port"), err);
+        pusherrormessage(buf, BUF_SIZE, _T("Unable to configure port"), err);
         setuservariable(INST_R0, _T("0"));
-        return;
+        goto cleanup;
     }
 
     setuservariable(INST_R0, _T("1"));
+
+cleanup:
+    GlobalFree(buf);
 }
 
 void __declspec(dllexport)
@@ -670,26 +718,32 @@ nsGetDefaultPrinter(HWND hwndParent, int string_size,
 {
     DWORD dwNeeded, err;
     BOOL rv;
+    TCHAR *buf = NULL;
 
     EXDLL_INIT();
+    buf = GlobalAlloc(GPTR, BUF_SIZE);
+
     dwNeeded = 0;
     GetDefaultPrinter(NULL, &dwNeeded);
-    if (dwNeeded > NSIS_VARSIZE) {
-        pusherrormessage(_T("Not enough buffer space for default printer name"), 0);
+    if (dwNeeded > BUF_SIZE) {
+        pusherrormessage(buf, BUF_SIZE, _T("Not enough buffer space for default printer name"), 0);
         setuservariable(INST_R0, _T("0"));
-        return;
+        goto cleanup;
     }
 
-    rv = GetDefaultPrinter(buffer, &dwNeeded);
+    rv = GetDefaultPrinter(buf, &dwNeeded);
     if (rv == FALSE) {
         err = GetLastError();
-        pusherrormessage(_T("Unable to get default printer"), err);
+        pusherrormessage(buf, BUF_SIZE, _T("Unable to get default printer"), err);
         setuservariable(INST_R0, _T("0"));
-        return;
+        goto cleanup;
     }
 
-    pushstring(buffer);
+    pushstring(buf);
     setuservariable(INST_R0, _T("1"));
+
+cleanup:
+    GlobalFree(buf);
 }
 
 void __declspec(dllexport)
@@ -698,18 +752,23 @@ nsSetDefaultPrinter(HWND hwndParent, int string_size,
 {
     DWORD err;
     BOOL rv;
+    TCHAR *buf;
 
     EXDLL_INIT();
-    popstring(buffer);
-    rv = SetDefaultPrinter(buffer);
+    buf = GlobalAlloc(GPTR, BUF_SIZE);
+    popstring(buf);
+    rv = SetDefaultPrinter(buf);
     if (rv == FALSE) {
         err = GetLastError();
-        pusherrormessage(_T("Unable to set default printer"), err);
+        pusherrormessage(buf, BUF_SIZE, _T("Unable to set default printer"), err);
         setuservariable(INST_R0, _T("0"));
-        return;
+        goto cleanup;
     }
 
     setuservariable(INST_R0, _T("1"));
+
+cleanup:
+    GlobalFree(buf);
 }
 
 BOOL WINAPI

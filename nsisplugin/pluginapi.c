@@ -1,4 +1,3 @@
-#include <strsafe.h>
 #include <windows.h>
 #include "pluginapi.h"
 
@@ -23,8 +22,6 @@
 unsigned int g_stringsize;
 stack_t **g_stacktop;
 LPTSTR g_variables;
-
-TCHAR buffer[NSIS_VARSIZE], errbuf[NSIS_VARSIZE];
 
 // utility functions (not required but often useful)
 
@@ -72,7 +69,7 @@ void NSISCALL setuservariable(const int varnum, LPCTSTR var)
     lstrcpy(g_variables + varnum*g_stringsize, var);
 }
 
-#ifdef _UNICODE
+#ifdef UNICODE
 int NSISCALL PopStringA(LPSTR ansiStr)
 {
    LPWSTR wideStr = (LPWSTR) GlobalAlloc(GPTR, g_stringsize*sizeof(WCHAR));
@@ -303,27 +300,6 @@ int NSISCALL popint_or()
 void NSISCALL pushintptr(INT_PTR value)
 {
   TCHAR buffer[30];
-  StringCbPrintf(buffer, 30, sizeof(void*) > 4 ? _T("%Id") : _T("%d"), value);
+  wsprintf(buffer, sizeof(void*) > 4 ? _T("%Id") : _T("%d"), value);
   pushstring(buffer);
-}
-
-void NSISCALL pusherrormessage(LPCTSTR msg, DWORD err)
-{
-    if (err > 0) {
-        FormatMessage(
-                FORMAT_MESSAGE_FROM_SYSTEM,
-                NULL,
-                err,
-                0,
-                errbuf,
-                NSIS_VARSIZE,
-                NULL
-            );
-
-        StringCbPrintf(buffer, NSIS_VARSIZE, _T("%s: %s"), msg, errbuf);
-    } else {
-        StringCbPrintf(buffer, NSIS_VARSIZE, _T("%s"), msg);
-    }
-
-    pushstring(buffer);
 }

@@ -56,13 +56,9 @@ INST_LANG,      // $LANGUAGE
 __INST_LAST
 };
 
-#define NSIS_VARSIZE 1024
-
 extern unsigned int g_stringsize;
 extern stack_t **g_stacktop;
 extern LPTSTR g_variables;
-
-extern TCHAR buffer[NSIS_VARSIZE], errbuf[NSIS_VARSIZE];
 
 void NSISCALL pushstring(LPCTSTR str);
 void NSISCALL pushintptr(INT_PTR value);
@@ -78,7 +74,6 @@ unsigned int NSISCALL myatou(LPCTSTR s); // converts a string to an unsigned int
 int NSISCALL myatoi_or(LPCTSTR s); // with support for or'ing (2|4|8)
 LPTSTR NSISCALL getuservariable(const int varnum);
 void NSISCALL setuservariable(const int varnum, LPCTSTR var);
-void NSISCALL pusherrormessage(LPCTSTR msg, DWORD err);
 
 #ifdef UNICODE
 #define PopStringW(x) popstring(x)

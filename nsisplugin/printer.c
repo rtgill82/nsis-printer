@@ -73,7 +73,7 @@ pusherrormessage (TCHAR *errbuf, int bufsiz, LPCTSTR msg, DWORD err)
   pushstring (errbuf);
 }
 
-LPTSTR
+static LPTSTR
 alloc_strcpy(LPTSTR str)
 {
     LPTSTR newstr;
@@ -84,7 +84,7 @@ alloc_strcpy(LPTSTR str)
     return newstr;
 }
 
-LPTSTR
+static LPTSTR
 parse_depfiles(LPTSTR str)
 {
     LPTSTR multisz;
@@ -112,7 +112,7 @@ parse_depfiles(LPTSTR str)
     return multisz;
 }
 
-void
+static void
 read_driverini(LPTSTR inifile, DRIVER_INFO *di)
 {
     LPTSTR buf;
@@ -143,7 +143,7 @@ read_driverini(LPTSTR inifile, DRIVER_INFO *di)
     GlobalFree(buf);
 }
 
-void
+static void
 cleanup_driverinfo(DRIVER_INFO *di)
 {
     GlobalFree(di->pName);
@@ -155,7 +155,7 @@ cleanup_driverinfo(DRIVER_INFO *di)
     GlobalFree(di->pDependentFiles);
 }
 
-size_t
+static size_t
 max_driverfile_name(DRIVER_INFO *di)
 {
     size_t filemax = 0;
@@ -177,7 +177,7 @@ max_driverfile_name(DRIVER_INFO *di)
     return filemax;
 }
 
-DWORD
+static DWORD
 copy_driverfiles(LPTSTR srcdir, DRIVER_INFO *di)
 {
     DWORD pcbNeeded, err = 0;
@@ -249,7 +249,7 @@ cleanup:
     return err;
 }
 
-DWORD
+static DWORD
 delete_driverfiles(DRIVER_INFO *di)
 {
     DWORD pcbNeeded, err = 0;

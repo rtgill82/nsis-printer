@@ -158,8 +158,8 @@ cleanup_driverinfo(DRIVER_INFO *di)
 static size_t
 max_driverfile_name(DRIVER_INFO *di)
 {
-    size_t filemax = 0;
     LPTSTR filename;
+    size_t filemax = 0;
 
     filemax = MAX(filemax, _tcslen(di->pDriverPath));
     filemax = MAX(filemax, _tcslen(di->pDataFile));
@@ -180,10 +180,13 @@ max_driverfile_name(DRIVER_INFO *di)
 static DWORD
 copy_driverfiles(LPTSTR srcdir, DRIVER_INFO *di)
 {
-    DWORD pcbNeeded, err = 0;
-    LPTSTR dest, src, filename, driverdir;
+    DWORD pcbNeeded;
+    LPTSTR filename;
     size_t srcbuflen, destbuflen, filemax;
     BOOL rv;
+
+    DWORD err = 0;
+    LPTSTR dest = NULL, src = NULL, driverdir = NULL;
 
     GetPrinterDriverDirectory(NULL, di->pEnvironment, 1, NULL, 0, &pcbNeeded);
     driverdir = GlobalAlloc(GPTR, pcbNeeded);
@@ -252,10 +255,13 @@ cleanup:
 static DWORD
 delete_driverfiles(DRIVER_INFO *di)
 {
-    DWORD pcbNeeded, err = 0;
-    LPTSTR driverdir, filepath, filename;
+    DWORD pcbNeeded;
+    LPTSTR filename;
     size_t filemax, buflen;
     BOOL rv;
+
+    DWORD err = 0;
+    LPTSTR driverdir = NULL, filepath = NULL;
 
     GetPrinterDriverDirectory(NULL, di->pEnvironment, 1, NULL, 0, &pcbNeeded);
     driverdir = GlobalAlloc(GPTR, pcbNeeded);
@@ -401,9 +407,10 @@ nsEnumPorts(HWND hwndParent, int string_size,
 {
     int i;
     DWORD pcbNeeded, pcReturned;
-    PORT_INFO_1 *portinfo;
     DWORD err; BOOL rv;
-    TCHAR *buf;
+
+    PORT_INFO_1 *portinfo = NULL;
+    TCHAR *buf = NULL;
 
     EXDLL_INIT();
     buf = GlobalAlloc(GPTR, BUF_SIZE);
@@ -442,11 +449,11 @@ void __declspec(dllexport)
 nsAddPort(HWND hwndParent, int string_size,
         LPTSTR variables, stack_t **stacktop)
 {
-    HANDLE hPrinter;
-    TCHAR *monbuf;
     DWORD dwNeeded, dwStatus;
     DWORD err; BOOL rv;
-    TCHAR *buf;
+
+    HANDLE hPrinter = NULL;
+    TCHAR *buf = NULL, *monbuf = NULL;
 
     PRINTER_DEFAULTS pd;
     pd.pDatatype = NULL;
@@ -502,12 +509,12 @@ nsAddPrinterDriver(HWND hwndParent, int string_size,
         LPTSTR variables, stack_t **stacktop)
 {
     DWORD arch;
-    LPTSTR driverdir;
-    LPTSTR inifile;
     DRIVER_INFO di;
     DWORD err;
     BOOL rv;
-    TCHAR *buf1, *buf2;
+
+    LPTSTR driverdir = NULL, inifile = NULL;
+    TCHAR *buf1 = NULL, *buf2 = NULL;
 
     EXDLL_INIT();
     ZeroMemory(&di, sizeof(DRIVER_INFO));
@@ -551,6 +558,7 @@ nsAddPrinterDriver(HWND hwndParent, int string_size,
 
 cleanup:
     cleanup_driverinfo(&di);
+    GlobalFree(buf1); GlobalFree(buf2);
     GlobalFree(driverdir);
     GlobalFree(inifile);
 }
@@ -560,9 +568,10 @@ nsAddPrinter(HWND hwndParent, int string_size,
         LPTSTR variables, stack_t **stacktop)
 {
     PRINTER_INFO_2 printerInfo;
-    HANDLE hPrinter;
     DWORD err;
-    TCHAR *buf;
+
+    HANDLE hPrinter = NULL;
+    TCHAR *buf = NULL;
 
     EXDLL_INIT();
     ZeroMemory(&printerInfo, sizeof(PRINTER_INFO_2));
@@ -613,10 +622,11 @@ void __declspec(dllexport)
 nsDeletePrinter(HWND hwndParent, int string_size,
         LPTSTR variables, stack_t **stacktop)
 {
-    HANDLE hPrinter;
     BOOL rv;
     DWORD err;
-    TCHAR *buf;
+
+    HANDLE hPrinter = NULL;
+    TCHAR *buf = NULL;
 
     PRINTER_DEFAULTS pd;
     pd.pDatatype = NULL;
@@ -653,12 +663,13 @@ void __declspec(dllexport)
 nsRedMonConfigurePort(HWND hwndParent, int string_size,
         LPTSTR variables, stack_t **stacktop)
 {
-    HANDLE hPrinter;
     RECONFIG config;
     PRINTER_DEFAULTS pd;
     DWORD dwNeeded, dwStatus;
     DWORD err; BOOL rv;
-    TCHAR *buf;
+
+    HANDLE hPrinter = NULL;
+    TCHAR *buf = NULL;
 
     EXDLL_INIT();
     ZeroMemory(&config, sizeof(RECONFIG));
@@ -709,6 +720,7 @@ nsRedMonConfigurePort(HWND hwndParent, int string_size,
     setuservariable(INST_R0, _T("1"));
 
 cleanup:
+    ClosePrinter(hPrinter);
     GlobalFree(buf);
 }
 
@@ -752,7 +764,7 @@ nsSetDefaultPrinter(HWND hwndParent, int string_size,
 {
     DWORD err;
     BOOL rv;
-    TCHAR *buf;
+    TCHAR *buf = NULL;
 
     EXDLL_INIT();
     buf = GlobalAlloc(GPTR, BUF_SIZE);

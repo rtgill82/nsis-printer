@@ -2,6 +2,7 @@
 #include <strsafe.h>
 #include <windows.h>
 #include <winspool.h>
+#include <tchar.h>
 
 #include "pluginapi.h"
 #include "portmon.h"
@@ -22,14 +23,12 @@ extern "C" {
 #define ARCH_X64 0x1
 
 #define MAX(a,b) (((a)>(b))?(a):(b))
-
-#define PRNNAME_SIZE 64
 #define BUF_SIZE (string_size * sizeof(TCHAR))
 
-HANDLE g_hInstance = NULL;
-TCHAR *prnName = NULL;
-DWORD dwPrintersNum = 0;
-LPPRINTER_INFO lpbPrintInfo = NULL;
+static HANDLE g_hInstance = NULL;
+static LPTSTR prnName = NULL;
+static DWORD dwPrintersNum = 0;
+static LPPRINTER_INFO lpbPrintInfo = NULL;
 
 /* Defined and used by Redmon 1.9. */
 struct reconfig_s {
@@ -61,8 +60,8 @@ pusherrormessage (TCHAR *errbuf, int bufsiz, LPCTSTR msg, DWORD err)
       lstrcat (errbuf, _T (": "));
       len = lstrlen(errbuf);
       FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM,
-		     NULL,
-		     err,
+             NULL,
+             err,
              0,
              errbuf + len,
              (bufsiz - len) * sizeof(TCHAR),
@@ -318,7 +317,7 @@ cleanup:
     return err;
 }
 
-static BOOL CALLBACK
+INT_PTR CALLBACK
 print_dlg_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     unsigned int idx, len;
@@ -328,33 +327,28 @@ print_dlg_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_INITDIALOG:
         prnCombo = GetDlgItem(hwnd, IDC_PRNCOMBO);
         SendMessage(prnCombo, CB_RESETCONTENT, 0, 0);
-        SendMessage(prnCombo,
-            CB_ADDSTRING, 0, (LPARAM)_T("None (Printing Disabled)"));
+        SendMessage(prnCombo, CB_ADDSTRING, 0, (LPARAM) _T("None (Printing Disabled)"));
 
-        for (idx = 0; idx < dwPrintersNum; idx++) {
-            SendMessage(prnCombo, CB_ADDSTRING, 0,
-                (LPARAM)lpbPrintInfo[idx].pPrinterName);
-        }
+        for (idx = 0; idx < dwPrintersNum; idx++)
+            SendMessage(prnCombo, CB_ADDSTRING, 0, (LPARAM)lpbPrintInfo[idx].pPrinterName);
 
         SendMessage(prnCombo, CB_SETCURSEL, 0, 0);
-        lstrcpy(prnName, _T(""));
         return TRUE;
 
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
         case IDOK:
-            if ((idx = SendMessage(prnCombo, CB_GETCURSEL, 0, 0)) == 0) {
+            idx = SendMessage(prnCombo, CB_GETCURSEL, 0, 0);
+            len = SendMessage(prnCombo, CB_GETLBTEXTLEN, idx, 0);
+            prnName = (TCHAR *)GlobalAlloc(GPTR, len);
+
+            if (idx == 0) {
                 lstrcpy(prnName, _T(""));
-            }
-            else {
-                len = SendMessage(prnCombo, CB_GETLBTEXTLEN, idx, 0);
-                if ((len + 1)*sizeof(TCHAR) >= PRNNAME_SIZE) {
-                    prnName = (TCHAR *)
-                        GlobalReAlloc(prnName, (len + 1)*sizeof(TCHAR), 0);
-                }
+            } else {
                 SendMessage(prnCombo, CB_GETLBTEXT, idx, (LPARAM) prnName);
             }
 
+            prnCombo = NULL;
             EndDialog(hwnd, IDOK);
             break;
         }
@@ -380,25 +374,24 @@ nsPrinterSelectDialog(HWND hwndParent,int string_size,
     lpbPrintInfo = (LPPRINTER_INFO) GlobalAlloc(GPTR, dwNeeded);
     if (lpbPrintInfo) {
         if (!EnumPrinters(
-            PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS,
-            NULL,
-            LPPRINTER_INFO_LEVEL,
-            (LPBYTE) lpbPrintInfo,
-            dwNeeded,
-            &dwNeeded,
-            &dwPrintersNum
-        )) {
-            GlobalFree(lpbPrintInfo);
-            lpbPrintInfo = NULL;
-        }
+                    PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS,
+                    NULL,
+                    LPPRINTER_INFO_LEVEL,
+                    (LPBYTE) lpbPrintInfo,
+                    dwNeeded,
+                    &dwNeeded,
+                    &dwPrintersNum
+            ));
     }
 
-    prnName = (TCHAR *) GlobalAlloc(GMEM_MOVEABLE, PRNNAME_SIZE);
-    DialogBox(g_hInstance,
-            MAKEINTRESOURCE(IDD_PRNSEL), hwndParent, print_dlg_proc);
+    DialogBox(g_hInstance, MAKEINTRESOURCE(IDD_PRNSEL), hwndParent, print_dlg_proc);
 
     pushstring(prnName);
+    GlobalFree(lpbPrintInfo);
     GlobalFree(prnName);
+    lpbPrintInfo = NULL;
+    prnName = NULL;
+    dwPrintersNum = 0;
 }
 
 void __declspec(dllexport)

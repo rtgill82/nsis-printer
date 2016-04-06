@@ -1,48 +1,40 @@
+CFLAGS = -march=i686 -fomit-frame-pointer -ftracer -Os -Wall
+HOST   = i686-w64-mingw32
+
 CCPATH = /usr/bin
-HOST=i686-w64-mingw32
 CC  = $(CCPATH)/$(HOST)-gcc
-CXX = $(CCPATH)/$(HOST)-g++
-DLLWRAP = $(CCPATH)/$(HOST)-dllwrap
-DLLTOOL = $(CCPATH)/$(HOST)-dlltool
-WINDRES = $(CCPATH)/$(HOST)-windres
+RC = $(CCPATH)/$(HOST)-windres
 
 INCLUDE = -I../include
-CFLAGS = $(INCLUDE) -march=i386 -g3 -O0 -Wall -s
+CPPFLAGS += $(INCLUDE)
 
-DLL_NAME = printer.dll
-DLL_OBJS = pluginapi.o printers.o
-DLL_EXP_DEF = printers.def
-DLL_EXP_LIB = libprinters.a
-DLL_LDLIBS = -lwinspool
-DLL_LDFLAGS = -mwindows -s
+CFLAGS += -fno-strict-aliasing -DNSISCALL="__attribute__((__stdcall__))"
+LDFLAGS += -mwindows -Wl,--file-alignment,512 -Wl,--kill-at -static-libgcc -shared -s
 
-RES_OBJS = printdlg.o
+UNICODE := true
+ifeq ($(UNICODE),true)
+CFLAGS += -DUNICODE -D_UNICODE
+LDFLAGS += -municode
+endif
 
-TESTWRAP = testwrap.exe
-TESTWRAP_OBJS = testwrap.o
+DLLNAME = Printer.dll
+DLL_OBJS = pluginapi.o printer.o
 
-DLLWRAP_FLAGS = --driver-name $(CC) --def $(DLL_EXP_DEF)
+RES_SRC  = printdlg.rc
+RES_OBJ = printdlg.o
 
-all: $(DLL_NAME) $(TESTWRAP)
 
-$(DLL_NAME): $(DLL_OBJS) $(RES_OBJS) $(DLL_EXP_DEF)
-	$(DLLWRAP) $(DLLWRAP_FLAGS) -o $(DLL_NAME) \
-	$(DLL_OBJS) $(RES_OBJS) $(DLL_LDFLAGS) $(DLL_LDLIBS)
+LDLIBS = -lwinspool
 
-$(DLL_EXP_LIB): $(DLL_EXP_DEF)
-	$(DLLTOOL) --dllname $(DLL_NAME) --def $(DLL_EXP_DEF) \
-	--output-lib $(DLL_EXP_LIB)
+all: $(DLLNAME)
 
-$(RES_OBJS): printdlg.rc
-	$(WINDRES) $(INCLUDE) -o $@ $<
+$(DLLNAME): $(DLL_OBJS) $(RES_OBJ)
+	$(CC) $^ $(LDFLAGS) $(LDLIBS) -o $@
 
-$(DLL_EXP_DEF): $(DLL_OBJS)
-	$(DLLTOOL) --export-all --output-def $@ $(DLL_OBJS)
-
-$(TESTWRAP): $(TESTWRAP_OBJS)
-	$(CC) $(CFLAGS) -o $@ $<
+$(RES_OBJ): $(RES_SRC)
+	$(RC) $(CPPFLAGS) -o $@ $<
 
 clean:
-	-rm *.o $(DLL_NAME) *.def *.exe
+	-rm $(DLLNAME) *.def *.exe *.o
 
-.PHONY: clean
+.PHONY: all clean

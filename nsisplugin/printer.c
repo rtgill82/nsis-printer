@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <windows.h>
 #include <winspool.h>
 #include <tchar.h>
@@ -471,7 +472,7 @@ nsAddPort(HWND hwndParent, int string_size,
     popstring(buf);
     rv = XcvData(
             hPrinter,
-            _T("AddPort"),
+            L"AddPort",
             (PBYTE) buf,
             ((lstrlen(buf)+1)*sizeof(TCHAR)),
             NULL,
@@ -685,7 +686,7 @@ nsRedMonConfigurePort(HWND hwndParent, int string_size,
 
     rv = XcvData(
             hPrinter,
-            _T("SetConfig"),
+            L"SetConfig",
             (PBYTE)(&config),
             sizeof(RECONFIG),
             NULL,

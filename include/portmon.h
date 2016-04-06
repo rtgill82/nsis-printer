@@ -19,7 +19,7 @@
 #ifndef __BORLANDC__
 #define _export
 #endif
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__MINGW32__)
 #define PORTMONEXPORT __declspec(dllexport)
 #endif
 

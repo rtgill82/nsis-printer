@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <strsafe.h>
 #include <windows.h>
 #include <winspool.h>
 #include <tchar.h>
@@ -197,32 +195,32 @@ copy_driverfiles(LPTSTR srcdir, DRIVER_INFO *di)
     destbuflen = (_tcslen(driverdir) + filemax + 2) * sizeof(TCHAR);
     dest = GlobalAlloc(GPTR, destbuflen);
 
-    StringCbPrintf(src, srcbuflen, _T("%s\\%s"), srcdir, di->pDriverPath);
-    StringCbPrintf(dest, destbuflen, _T("%s\\%s"), driverdir, di->pDriverPath);
+    _sntprintf(src, srcbuflen, _T("%s\\%s"), srcdir, di->pDriverPath);
+    _sntprintf(dest, destbuflen, _T("%s\\%s"), driverdir, di->pDriverPath);
     rv = CopyFile(src, dest, FALSE);
     if (rv == FALSE) {
         err = GetLastError();
         goto cleanup;
     }
 
-    StringCbPrintf(src, srcbuflen, _T("%s\\%s"), srcdir, di->pDataFile);
-    StringCbPrintf(dest, destbuflen, _T("%s\\%s"), driverdir, di->pDataFile);
+    _sntprintf(src, srcbuflen, _T("%s\\%s"), srcdir, di->pDataFile);
+    _sntprintf(dest, destbuflen, _T("%s\\%s"), driverdir, di->pDataFile);
     rv = CopyFile(src, dest, FALSE);
     if (rv == FALSE) {
         err = GetLastError();
         goto cleanup;
     }
 
-    StringCbPrintf(src, srcbuflen, _T("%s\\%s"), srcdir, di->pConfigFile);
-    StringCbPrintf(dest, destbuflen, _T("%s\\%s"), driverdir, di->pConfigFile);
+    _sntprintf(src, srcbuflen, _T("%s\\%s"), srcdir, di->pConfigFile);
+    _sntprintf(dest, destbuflen, _T("%s\\%s"), driverdir, di->pConfigFile);
     rv = CopyFile(src, dest, FALSE);
     if (rv == FALSE) {
         err = GetLastError();
         goto cleanup;
     }
 
-    StringCbPrintf(src, srcbuflen, _T("%s\\%s"), srcdir, di->pHelpFile);
-    StringCbPrintf(dest, destbuflen, _T("%s\\%s"), driverdir, di->pHelpFile);
+    _sntprintf(src, srcbuflen, _T("%s\\%s"), srcdir, di->pHelpFile);
+    _sntprintf(dest, destbuflen, _T("%s\\%s"), driverdir, di->pHelpFile);
     rv = CopyFile(src, dest, FALSE);
     if (rv == FALSE) {
         err = GetLastError();
@@ -233,8 +231,8 @@ copy_driverfiles(LPTSTR srcdir, DRIVER_INFO *di)
     while (TRUE) {
         size_t len = _tcslen(filename);
         if (len == 0) break;
-        StringCbPrintf(src, srcbuflen, _T("%s\\%s"), srcdir, filename);
-        StringCbPrintf(dest, destbuflen, _T("%s\\%s"), driverdir, filename);
+        _sntprintf(src, srcbuflen, _T("%s\\%s"), srcdir, filename);
+        _sntprintf(dest, destbuflen, _T("%s\\%s"), driverdir, filename);
         rv = CopyFile(src, dest, FALSE);
         if (rv == FALSE) {
             err = GetLastError();
@@ -269,28 +267,28 @@ delete_driverfiles(DRIVER_INFO *di)
     filemax = max_driverfile_name(di);
     buflen = (_tcslen(driverdir) + filemax + 2) * sizeof(TCHAR);
     filepath = GlobalAlloc(GPTR, buflen);
-    StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pDriverPath);
+    _sntprintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pDriverPath);
     rv = DeleteFile(filepath);
     if (rv == FALSE) {
         err = GetLastError();
         goto cleanup;
     }
 
-    StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pDataFile);
+    _sntprintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pDataFile);
     rv = DeleteFile(filepath);
     if (rv == FALSE) {
         err = GetLastError();
         goto cleanup;
     }
 
-    StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pConfigFile);
+    _sntprintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pConfigFile);
     rv = DeleteFile(filepath);
     if (rv == FALSE) {
         err = GetLastError();
         goto cleanup;
     }
 
-    StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pHelpFile);
+    _sntprintf(filepath, buflen, _T("%s\\%s"), driverdir, di->pHelpFile);
     rv = DeleteFile(filepath);
     if (rv == FALSE) {
         err = GetLastError();
@@ -301,7 +299,7 @@ delete_driverfiles(DRIVER_INFO *di)
     while (TRUE) {
         size_t len = _tcslen(filename);
         if (len == 0) break;
-        StringCbPrintf(filepath, buflen, _T("%s\\%s"), driverdir, filename);
+        _sntprintf(filepath, buflen, _T("%s\\%s"), driverdir, filename);
         rv = DeleteFile(filepath);
         if (rv == FALSE) {
             err = GetLastError();
@@ -430,7 +428,7 @@ nsEnumPorts(HWND hwndParent, int string_size,
     for (i = pcReturned - 1; i >= 0; i--)
         pushstring(portinfo[i].pName);
 
-    StringCbPrintf(buf, BUF_SIZE, _T("%ld"), pcReturned);
+    _sntprintf(buf, BUF_SIZE, _T("%ld"), pcReturned);
     setuservariable(INST_R0, buf);
 
 cleanup:
@@ -459,7 +457,7 @@ nsAddPort(HWND hwndParent, int string_size,
 
     /* Pop print monitor */
     popstring(buf);
-    StringCbPrintf(monbuf, BUF_SIZE, _T(",XcvMonitor %s"), buf);
+    _sntprintf(monbuf, BUF_SIZE, _T(",XcvMonitor %s"), buf);
 
     rv = OpenPrinter(monbuf, &hPrinter, &pd);
     if (rv == FALSE) {
@@ -524,11 +522,11 @@ nsAddPrinterDriver(HWND hwndParent, int string_size,
 
     /* Driver Directory */
     popstring(buf1);
-    StringCbPrintf(buf2, BUF_SIZE, _T("%s\\%s"),
+    _sntprintf(buf2, BUF_SIZE, _T("%s\\%s"),
             buf1, (arch == ARCH_X64 ? _T("x64") : _T("w32x86")));
     driverdir = alloc_strcpy(buf2);
 
-    StringCbPrintf(buf2, BUF_SIZE, _T("%s\\DRIVER.INI"), driverdir);
+    _sntprintf(buf2, BUF_SIZE, _T("%s\\DRIVER.INI"), driverdir);
     inifile = alloc_strcpy(buf2);
     read_driverini(inifile, &di);
     err = copy_driverfiles(driverdir, &di);
@@ -570,29 +568,22 @@ nsAddPrinter(HWND hwndParent, int string_size,
     ZeroMemory(&printerInfo, sizeof(PRINTER_INFO_2));
     buf = GlobalAlloc(GPTR, BUF_SIZE);
 
-    FILE *f;
-    f = fopen("C:\\nsisprinter.log", "w");
-
     /* Printer Name */
     popstring(buf);
     printerInfo.pPrinterName = GlobalAlloc(GPTR, ((lstrlen(buf)+1)*sizeof(TCHAR)));
     lstrcpy(printerInfo.pPrinterName, buf);
-    fprintf(f, "Printer Name: %S\n", printerInfo.pPrinterName); fflush(f);
 
     /* Port Name */
     popstring(buf);
     printerInfo.pPortName = GlobalAlloc(GPTR, ((lstrlen(buf)+1)*sizeof(TCHAR)));
     lstrcpy(printerInfo.pPortName, buf);
-    fprintf(f, "Port Name: %S\n", printerInfo.pPortName); fflush(f);
 
     /* Printer Driver */
     popstring(buf);
     printerInfo.pDriverName = GlobalAlloc(GPTR, ((lstrlen(buf)+1)*sizeof(TCHAR)));
     lstrcpy(printerInfo.pDriverName, buf);
-    fprintf(f, "Driver Name: %S\n", printerInfo.pDriverName); fflush(f);
 
     hPrinter = AddPrinter(NULL, 2, (LPBYTE) &printerInfo);
-    fprintf(f, "hPrinter = %p\n", hPrinter); fflush(f);
     if (hPrinter == NULL) {
         err = GetLastError();
         pusherrormessage(buf, BUF_SIZE, _T("Unable to add printer"), err);
@@ -603,7 +594,6 @@ nsAddPrinter(HWND hwndParent, int string_size,
     setuservariable(INST_R0, _T("1"));
 
 cleanup:
-    fclose(f);
     ClosePrinter(hPrinter);
     GlobalFree(buf);
     GlobalFree(printerInfo.pDriverName);

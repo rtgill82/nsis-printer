@@ -1,5 +1,6 @@
-CFLAGS = -march=i686 -fomit-frame-pointer -ftracer -Os -Wall
-HOST   = i686-w64-mingw32
+CFLAGS  = -march=i686 -fomit-frame-pointer -ftracer -Os -Wall
+HOST    = i686-w64-mingw32
+LDFLAGS = -s
 
 CCPATH = /usr/bin
 CC  = $(CCPATH)/$(HOST)-gcc
@@ -9,7 +10,7 @@ INCLUDE = -I../include
 CPPFLAGS += $(INCLUDE)
 
 CFLAGS += -fno-strict-aliasing -DNSISCALL="__attribute__((__stdcall__))"
-LDFLAGS += -mwindows -Wl,--file-alignment,512 -Wl,--kill-at -static-libgcc -shared -s
+LDFLAGS += -mwindows -Wl,--file-alignment,512 -Wl,--kill-at -static-libgcc -shared
 
 UNICODE := true
 ifeq ($(UNICODE),true)
@@ -22,8 +23,6 @@ DLL_OBJS = pluginapi.o printer.o
 
 RES_SRC  = printdlg.rc
 RES_OBJ = printdlg.o
-
-
 LDLIBS = -lwinspool
 
 all: $(DLLNAME)

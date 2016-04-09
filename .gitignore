@@ -1,6 +1,6 @@
-*.o
 *.def
-nsisplugin/Printer.dll
+*.o
+src/Printer.dll
 Debug
 nsisprinter.opensdf
 nsisprinter.sdf

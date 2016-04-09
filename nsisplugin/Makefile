@@ -35,6 +35,6 @@ $(RES_OBJ): $(RES_SRC)
 	$(RC) $(CPPFLAGS) -o $@ $<
 
 clean:
-	-rm $(DLLNAME) *.def *.exe *.o
+	-rm $(DLLNAME) *.o
 
 .PHONY: all clean

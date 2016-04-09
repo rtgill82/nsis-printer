@@ -24,7 +24,7 @@ extern "C" {
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define BUF_SIZE (string_size * sizeof(TCHAR))
 
-static HANDLE g_hInstance = NULL;
+static HINSTANCE g_hInstance = NULL;
 static LPTSTR prnName = NULL;
 static DWORD dwPrintersNum = 0;
 static LPPRINTER_INFO lpbPrintInfo = NULL;
@@ -369,7 +369,7 @@ print_dlg_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case IDOK:
 	  idx = SendMessage (prnCombo, CB_GETCURSEL, 0, 0);
 	  len = SendMessage (prnCombo, CB_GETLBTEXTLEN, idx, 0);
-	  prnName = (TCHAR *) GlobalAlloc (GPTR, len);
+	  prnName = (TCHAR *) GlobalAlloc (GPTR, (len + 1) * sizeof(TCHAR));
 
 	  if (idx == 0)
 	    {
@@ -808,9 +808,9 @@ cleanup:
 }
 
 BOOL WINAPI
-DllMain (HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
+DllMain (HINSTANCE hinstDLL, DWORD fdwReadon, LPVOID lpvReserved)
 {
-  g_hInstance = hInst;
+  g_hInstance = hinstDLL;
   return TRUE;
 }
 

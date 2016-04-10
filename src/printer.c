@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sun 10 Apr 2016 12:53:50 PM PDT
+ * Modified: Sun 10 Apr 2016 03:57:19 PM PDT
  *
  * Copyright (C) 2014-2016 Robert Gill <locke@sdf.lonestar.org>
  *
@@ -48,8 +48,8 @@ static LPPRINTER_INFO lpbPrintInfo = NULL;
 /* Defined and used by Redmon 1.9. */
 struct reconfig_s
 {
-  DWORD dwSize;			/* sizeof this structure */
-  DWORD dwVersion;		/* version number of RedMon */
+  DWORD dwSize;                 /* sizeof this structure */
+  DWORD dwVersion;              /* version number of RedMon */
   TCHAR szPortName[MAXSTR];
   TCHAR szDescription[MAXSTR];
   TCHAR szCommand[MAXSTR];
@@ -76,7 +76,7 @@ pusherrormessage (TCHAR * errbuf, int bufsiz, LPCTSTR msg, DWORD err)
       lstrcat (errbuf, _T (": "));
       len = lstrlen (errbuf);
       FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM, NULL, err, 0, errbuf + len,
-		     (bufsiz - len) * sizeof (TCHAR), NULL);
+                     (bufsiz - len) * sizeof (TCHAR), NULL);
     }
 
   pushstring (errbuf);
@@ -107,17 +107,17 @@ parse_depfiles (LPTSTR str)
   for (p = str; *p; p++)
     {
       if (*p == _T (';'))
-	{
-	  _tcsncpy (pmultisz, pstr, cnt);
-	  pmultisz[cnt] = _T ('\0');
-	  pmultisz += cnt + 1;
-	  cnt = 0;
-	  pstr = p + 1;
-	}
+        {
+          _tcsncpy (pmultisz, pstr, cnt);
+          pmultisz[cnt] = _T ('\0');
+          pmultisz += cnt + 1;
+          cnt = 0;
+          pstr = p + 1;
+        }
       else
-	{
-	  cnt++;
-	}
+        {
+          cnt++;
+        }
     }
 
   _tcscpy (pmultisz, _T (""));
@@ -139,7 +139,7 @@ read_driverini (LPTSTR inifile, DRIVER_INFO * di)
   di->pName = alloc_strcpy (buf);
 
   GetPrivateProfileString (_T ("driver"), _T ("environment"), NULL, buf,
-			   MAX_PATH, inifile);
+                           MAX_PATH, inifile);
   di->pEnvironment = alloc_strcpy (buf);
 
   GetPrivateProfileString (_T ("driver"), _T ("driver"), NULL, buf,
@@ -147,19 +147,19 @@ read_driverini (LPTSTR inifile, DRIVER_INFO * di)
   di->pDriverPath = alloc_strcpy (buf);
 
   GetPrivateProfileString (_T ("driver"), _T ("datafile"), NULL, buf,
-			   MAX_PATH, inifile);
+                           MAX_PATH, inifile);
   di->pDataFile = alloc_strcpy (buf);
 
   GetPrivateProfileString (_T ("driver"), _T ("configfile"), NULL, buf,
-			   MAX_PATH, inifile);
+                           MAX_PATH, inifile);
   di->pConfigFile = alloc_strcpy (buf);
 
   GetPrivateProfileString (_T ("driver"), _T ("helpfile"), NULL, buf,
-			   MAX_PATH, inifile);
+                           MAX_PATH, inifile);
   di->pHelpFile = alloc_strcpy (buf);
 
   GetPrivateProfileString (_T ("driver"), _T ("depfiles"), NULL, buf,
-			   MAX_PATH, inifile);
+                           MAX_PATH, inifile);
   di->pDependentFiles = parse_depfiles (buf);
 
   GlobalFree (buf);
@@ -193,7 +193,7 @@ max_driverfile_name (DRIVER_INFO * di)
     {
       size_t len = _tcslen (filename);
       if (len == 0)
-	break;
+        break;
       filemax = MAX (filemax, len);
       filename = filename + len + 1;
     }
@@ -215,7 +215,7 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO * di)
   GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, NULL, 0, &pcbNeeded);
   driverdir = GlobalAlloc (GPTR, pcbNeeded);
   GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, (LPBYTE) driverdir,
-			     pcbNeeded, &pcbNeeded);
+                             pcbNeeded, &pcbNeeded);
 
   filemax = max_driverfile_name (di);
   srcbuflen = (_tcslen (srcdir) + filemax + 2) * sizeof (TCHAR);
@@ -264,15 +264,15 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO * di)
     {
       size_t len = _tcslen (filename);
       if (len == 0)
-	break;
+        break;
       _sntprintf (src, srcbuflen, _T ("%s\\%s"), srcdir, filename);
       _sntprintf (dest, destbuflen, _T ("%s\\%s"), driverdir, filename);
       rv = CopyFile (src, dest, FALSE);
       if (rv == FALSE)
-	{
-	  err = GetLastError ();
-	  goto cleanup;
-	}
+        {
+          err = GetLastError ();
+          goto cleanup;
+        }
       filename = filename + len + 1;
     }
 
@@ -298,7 +298,7 @@ delete_driverfiles (DRIVER_INFO * di)
   GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, NULL, 0, &pcbNeeded);
   driverdir = GlobalAlloc (GPTR, pcbNeeded);
   GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, (LPBYTE) driverdir,
-			     pcbNeeded, &pcbNeeded);
+                             pcbNeeded, &pcbNeeded);
 
   filemax = max_driverfile_name (di);
   buflen = (_tcslen (driverdir) + filemax + 2) * sizeof (TCHAR);
@@ -340,14 +340,14 @@ delete_driverfiles (DRIVER_INFO * di)
     {
       size_t len = _tcslen (filename);
       if (len == 0)
-	break;
+        break;
       _sntprintf (filepath, buflen, _T ("%s\\%s"), driverdir, filename);
       rv = DeleteFile (filepath);
       if (rv == FALSE)
-	{
-	  err = GetLastError ();
-	  goto cleanup;
-	}
+        {
+          err = GetLastError ();
+          goto cleanup;
+        }
       filename = filename + len + 1;
     }
 
@@ -370,36 +370,36 @@ print_dlg_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       prnCombo = GetDlgItem (hwnd, IDC_PRNCOMBO);
       SendMessage (prnCombo, CB_RESETCONTENT, 0, 0);
       SendMessage (prnCombo, CB_ADDSTRING, 0,
-		   (LPARAM) _T ("None (Printing Disabled)"));
+                   (LPARAM) _T ("None (Printing Disabled)"));
 
       for (idx = 0; idx < dwPrintersNum; idx++)
-	SendMessage (prnCombo, CB_ADDSTRING, 0,
-		     (LPARAM) lpbPrintInfo[idx].pPrinterName);
+        SendMessage (prnCombo, CB_ADDSTRING, 0,
+                     (LPARAM) lpbPrintInfo[idx].pPrinterName);
 
       SendMessage (prnCombo, CB_SETCURSEL, 0, 0);
       return TRUE;
 
     case WM_COMMAND:
       switch (LOWORD (wParam))
-	{
-	case IDOK:
-	  idx = SendMessage (prnCombo, CB_GETCURSEL, 0, 0);
-	  len = SendMessage (prnCombo, CB_GETLBTEXTLEN, idx, 0);
-	  prnName = (TCHAR *) GlobalAlloc (GPTR, (len + 1) * sizeof(TCHAR));
+        {
+        case IDOK:
+          idx = SendMessage (prnCombo, CB_GETCURSEL, 0, 0);
+          len = SendMessage (prnCombo, CB_GETLBTEXTLEN, idx, 0);
+          prnName = (TCHAR *) GlobalAlloc (GPTR, (len + 1) * sizeof(TCHAR));
 
-	  if (idx == 0)
-	    {
-	      lstrcpy (prnName, _T (""));
-	    }
-	  else
-	    {
-	      SendMessage (prnCombo, CB_GETLBTEXT, idx, (LPARAM) prnName);
-	    }
+          if (idx == 0)
+            {
+              lstrcpy (prnName, _T (""));
+            }
+          else
+            {
+              SendMessage (prnCombo, CB_GETLBTEXT, idx, (LPARAM) prnName);
+            }
 
-	  prnCombo = NULL;
-	  EndDialog (hwnd, IDOK);
-	  break;
-	}
+          prnCombo = NULL;
+          EndDialog (hwnd, IDOK);
+          break;
+        }
       break;
 
     default:
@@ -411,24 +411,24 @@ print_dlg_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 void __declspec (dllexport)
 nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
-		       stack_t ** stacktop)
+                       stack_t ** stacktop)
 {
   DWORD dwNeeded = 0;
 
   EXDLL_INIT ();
   EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
-		LPPRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &dwPrintersNum);
+                LPPRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &dwPrintersNum);
 
   lpbPrintInfo = (LPPRINTER_INFO) GlobalAlloc (GPTR, dwNeeded);
   if (lpbPrintInfo)
     {
       EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
-		    LPPRINTER_INFO_LEVEL, (LPBYTE) lpbPrintInfo, dwNeeded,
-		    &dwNeeded, &dwPrintersNum);
+                    LPPRINTER_INFO_LEVEL, (LPBYTE) lpbPrintInfo, dwNeeded,
+                    &dwNeeded, &dwPrintersNum);
     }
 
   DialogBox (g_hInstance, MAKEINTRESOURCE (IDD_PRNSEL), hwndParent,
-	     print_dlg_proc);
+             print_dlg_proc);
 
   pushstring (prnName);
   GlobalFree (lpbPrintInfo);
@@ -440,7 +440,7 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
 
 void __declspec (dllexport)
 nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
-	     stack_t ** stacktop)
+             stack_t ** stacktop)
 {
   int i;
   DWORD pcbNeeded, pcReturned;
@@ -480,7 +480,7 @@ cleanup:
 
 void __declspec (dllexport)
 nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
-	   stack_t ** stacktop)
+           stack_t ** stacktop)
 {
   DWORD dwNeeded, dwStatus;
   DWORD err;
@@ -515,8 +515,8 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
   popstring (buf);
   rv =
     XcvData (hPrinter, L"AddPort", (PBYTE) buf,
-	     ((lstrlen (buf) + 1) * sizeof (TCHAR)), NULL, 0, &dwNeeded,
-	     &dwStatus);
+             ((lstrlen (buf) + 1) * sizeof (TCHAR)), NULL, 0, &dwNeeded,
+             &dwStatus);
 
   if (rv == FALSE)
     {
@@ -536,7 +536,7 @@ cleanup:
 
 void __declspec (dllexport)
 nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
-		    stack_t ** stacktop)
+                    stack_t ** stacktop)
 {
   DWORD arch;
   DRIVER_INFO di;
@@ -565,7 +565,7 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
   /* Driver Directory */
   popstring (buf1);
   _sntprintf (buf2, BUF_SIZE, _T ("%s\\%s"), buf1,
-	      (arch == ARCH_X64 ? _T ("x64") : _T ("w32x86")));
+              (arch == ARCH_X64 ? _T ("x64") : _T ("w32x86")));
   driverdir = alloc_strcpy (buf2);
 
   _sntprintf (buf2, BUF_SIZE, _T ("%s\\DRIVER.INI"), driverdir);
@@ -585,7 +585,7 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (buf1, BUF_SIZE, _T ("Unable to add printer driver"),
-			err);
+                        err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -603,7 +603,7 @@ cleanup:
 
 void __declspec (dllexport)
 nsAddPrinter (HWND hwndParent, int string_size, LPTSTR variables,
-	      stack_t ** stacktop)
+              stack_t ** stacktop)
 {
   PRINTER_INFO_2 printerInfo;
   DWORD err;
@@ -654,7 +654,7 @@ cleanup:
 
 void __declspec (dllexport)
 nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
-		 stack_t ** stacktop)
+                 stack_t ** stacktop)
 {
   BOOL rv;
   DWORD err;
@@ -697,7 +697,7 @@ cleanup:
 
 void __declspec (dllexport)
 nsRedMonConfigurePort (HWND hwndParent, int string_size, LPTSTR variables,
-		       stack_t ** stacktop)
+                       stack_t ** stacktop)
 {
   RECONFIG config;
   PRINTER_DEFAULTS pd;
@@ -740,7 +740,7 @@ nsRedMonConfigurePort (HWND hwndParent, int string_size, LPTSTR variables,
 
   rv =
     XcvData (hPrinter, L"SetConfig", (PBYTE) (&config), sizeof (RECONFIG),
-	     NULL, 0, &dwNeeded, &dwStatus);
+             NULL, 0, &dwNeeded, &dwStatus);
   if (rv == FALSE)
     {
       err = GetLastError ();
@@ -758,7 +758,7 @@ cleanup:
 
 void __declspec (dllexport)
 nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
-		     stack_t ** stacktop)
+                     stack_t ** stacktop)
 {
   DWORD dwNeeded, err;
   BOOL rv;
@@ -772,9 +772,9 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
   if (dwNeeded > BUF_SIZE)
     {
       pusherrormessage (buf, BUF_SIZE,
-			_T
-			("Not enough buffer space for default printer name"),
-			0);
+                        _T
+                        ("Not enough buffer space for default printer name"),
+                        0);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -798,7 +798,7 @@ cleanup:
 
 void __declspec (dllexport)
 nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
-		     stack_t ** stacktop)
+                     stack_t ** stacktop)
 {
   DWORD err;
   BOOL rv;
@@ -812,7 +812,7 @@ nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (buf, BUF_SIZE, _T ("Unable to set default printer"),
-			err);
+                        err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }

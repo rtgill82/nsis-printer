@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sun 10 Apr 2016 03:57:19 PM PDT
+ * Modified: Sun 10 Apr 2016 04:18:04 PM PDT
  *
  * Copyright (C) 2014-2016 Robert Gill <locke@sdf.lonestar.org>
  *
@@ -40,11 +40,6 @@ extern "C" {
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define BUF_SIZE (string_size * sizeof(TCHAR))
 
-static HINSTANCE g_hInstance = NULL;
-static LPTSTR prnName = NULL;
-static DWORD dwPrintersNum = 0;
-static LPPRINTER_INFO lpbPrintInfo = NULL;
-
 /* Defined and used by Redmon 1.9. */
 struct reconfig_s
 {
@@ -64,6 +59,20 @@ struct reconfig_s
   DWORD dwLogFileDebug;
   DWORD dwPrintError;
 };
+
+struct printer_select_dialog_opts_s
+{
+  DWORD dwPrintersNum;
+  LPPRINTER_INFO lpbPrinterInfo;
+};
+
+static HINSTANCE g_hInstance;
+
+/*
+ * Does printerName need to be global?
+ * How do you pass results back from a DialogBox?
+ */
+static LPTSTR printerName;
 
 static void NSISCALL
 pusherrormessage (TCHAR * errbuf, int bufsiz, LPCTSTR msg, DWORD err)
@@ -359,22 +368,24 @@ cleanup:
 }
 
 INT_PTR CALLBACK
-print_dlg_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   unsigned int idx, len;
   static HWND prnCombo = NULL;
+  struct printer_select_dialog_opts_s *opts;
 
   switch (msg)
     {
     case WM_INITDIALOG:
+      opts = (struct printer_select_dialog_opts_s *) lParam;
       prnCombo = GetDlgItem (hwnd, IDC_PRNCOMBO);
       SendMessage (prnCombo, CB_RESETCONTENT, 0, 0);
       SendMessage (prnCombo, CB_ADDSTRING, 0,
                    (LPARAM) _T ("None (Printing Disabled)"));
 
-      for (idx = 0; idx < dwPrintersNum; idx++)
+      for (idx = 0; idx < opts->dwPrintersNum; idx++)
         SendMessage (prnCombo, CB_ADDSTRING, 0,
-                     (LPARAM) lpbPrintInfo[idx].pPrinterName);
+                     (LPARAM) opts->lpbPrinterInfo[idx].pPrinterName);
 
       SendMessage (prnCombo, CB_SETCURSEL, 0, 0);
       return TRUE;
@@ -385,15 +396,16 @@ print_dlg_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case IDOK:
           idx = SendMessage (prnCombo, CB_GETCURSEL, 0, 0);
           len = SendMessage (prnCombo, CB_GETLBTEXTLEN, idx, 0);
-          prnName = (TCHAR *) GlobalAlloc (GPTR, (len + 1) * sizeof(TCHAR));
+          printerName =
+            (TCHAR *) GlobalAlloc (GPTR, (len + 1) * sizeof (TCHAR));
 
           if (idx == 0)
             {
-              lstrcpy (prnName, _T (""));
+              lstrcpy (printerName, _T (""));
             }
           else
             {
-              SendMessage (prnCombo, CB_GETLBTEXT, idx, (LPARAM) prnName);
+              SendMessage (prnCombo, CB_GETLBTEXT, idx, (LPARAM) printerName);
             }
 
           prnCombo = NULL;
@@ -413,29 +425,30 @@ void __declspec (dllexport)
 nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t ** stacktop)
 {
+  struct printer_select_dialog_opts_s opts;
   DWORD dwNeeded = 0;
 
   EXDLL_INIT ();
+  ZeroMemory (&opts, sizeof (struct printer_select_dialog_opts_s));
   EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
-                LPPRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &dwPrintersNum);
+                LPPRINTER_INFO_LEVEL, NULL, 0, &dwNeeded,
+                &opts.dwPrintersNum);
 
-  lpbPrintInfo = (LPPRINTER_INFO) GlobalAlloc (GPTR, dwNeeded);
-  if (lpbPrintInfo)
+  opts.lpbPrinterInfo = (LPPRINTER_INFO) GlobalAlloc (GPTR, dwNeeded);
+  if (opts.lpbPrinterInfo)
     {
       EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
-                    LPPRINTER_INFO_LEVEL, (LPBYTE) lpbPrintInfo, dwNeeded,
-                    &dwNeeded, &dwPrintersNum);
+                    LPPRINTER_INFO_LEVEL, (LPBYTE) opts.lpbPrinterInfo,
+                    dwNeeded, &dwNeeded, &opts.dwPrintersNum);
     }
 
-  DialogBox (g_hInstance, MAKEINTRESOURCE (IDD_PRNSEL), hwndParent,
-             print_dlg_proc);
+  DialogBoxParam (g_hInstance, MAKEINTRESOURCE (IDD_PRNSEL), hwndParent,
+                  printer_select_dialog_proc, (LPARAM) &opts);
 
-  pushstring (prnName);
-  GlobalFree (lpbPrintInfo);
-  GlobalFree (prnName);
-  lpbPrintInfo = NULL;
-  prnName = NULL;
-  dwPrintersNum = 0;
+  pushstring (printerName);
+  GlobalFree (opts.lpbPrinterInfo);
+  GlobalFree (printerName);
+  printerName = NULL;
 }
 
 void __declspec (dllexport)

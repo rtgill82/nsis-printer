@@ -10,7 +10,7 @@ INCLUDE = -I../include
 CPPFLAGS += $(INCLUDE)
 
 CFLAGS += -fno-strict-aliasing -DNSISCALL="__attribute__((__stdcall__))"
-LDFLAGS += -mwindows -Wl,--file-alignment,512 -Wl,--kill-at -static-libgcc -shared
+LDFLAGS += -mwindows -Wl,--kill-at -static-libgcc -shared
 
 UNICODE := true
 ifeq ($(UNICODE),true)

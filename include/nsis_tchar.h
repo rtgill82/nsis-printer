@@ -41,17 +41,17 @@ typedef wchar_t TCHAR;
 #define _ftprintf   fwprintf
 #define _sntprintf  _snwprintf
 #if (defined(_MSC_VER) && (_MSC_VER<=1310||_MSC_FULL_VER<=140040310)) || defined(__MINGW32__)
-#	define _stprintf   swprintf
+#       define _stprintf   swprintf
 #else
-#	define _stprintf   _swprintf
+#       define _stprintf   _swprintf
 #endif
 #define _tprintf    wprintf
 #define _vftprintf  vfwprintf
 #define _vsntprintf _vsnwprintf
 #if defined(_MSC_VER) && (_MSC_VER<=1310)
-#	define _vstprintf  vswprintf
+#       define _vstprintf  vswprintf
 #else
-#	define _vstprintf  _vswprintf
+#       define _vstprintf  _vswprintf
 #endif
 
 // scanfs

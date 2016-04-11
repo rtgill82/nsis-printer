@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Mon 11 Apr 2016 03:43:51 PM PDT
+ * Modified: Mon 11 Apr 2016 03:47:31 PM PDT
  *
  * Copyright (C) 2014-2016 Robert Gill <locke@sdf.lonestar.org>
  *
@@ -381,7 +381,7 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
     case WM_INITDIALOG:
       opts = (struct printer_select_dialog_opts_s *) lParam;
-      prnCombo = GetDlgItem (hwnd, IDC_PRNCOMBO);
+      prnCombo = GetDlgItem (hwnd, IDC_PRINTER_COMBO);
       SendMessage (prnCombo, CB_RESETCONTENT, 0, 0);
       SendMessage (prnCombo, CB_ADDSTRING, 0,
                    (LPARAM) _T ("None (Printing Disabled)"));

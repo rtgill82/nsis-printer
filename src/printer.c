@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sun 10 Apr 2016 04:18:04 PM PDT
+ * Modified: Mon 11 Apr 2016 02:40:12 PM PDT
  *
  * Copyright (C) 2014-2016 Robert Gill <locke@sdf.lonestar.org>
  *
@@ -68,6 +68,9 @@ struct printer_select_dialog_opts_s
 
 static HINSTANCE g_hInstance;
 
+#define ERRBUF_SIZE 1024
+static TCHAR errbuf[ERRBUF_SIZE];
+
 /*
  * Does printerName need to be global?
  * How do you pass results back from a DialogBox?
@@ -75,7 +78,7 @@ static HINSTANCE g_hInstance;
 static LPTSTR printerName;
 
 static void NSISCALL
-pusherrormessage (TCHAR * errbuf, int bufsiz, LPCTSTR msg, DWORD err)
+pusherrormessage (LPCTSTR msg, DWORD err)
 {
   int len;
   lstrcpy (errbuf, msg);
@@ -85,7 +88,7 @@ pusherrormessage (TCHAR * errbuf, int bufsiz, LPCTSTR msg, DWORD err)
       lstrcat (errbuf, _T (": "));
       len = lstrlen (errbuf);
       FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM, NULL, err, 0, errbuf + len,
-                     (bufsiz - len) * sizeof (TCHAR), NULL);
+                     (ERRBUF_SIZE - len) * sizeof (TCHAR), NULL);
     }
 
   pushstring (errbuf);
@@ -475,7 +478,7 @@ nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
   if (rv != TRUE)
     {
       err = GetLastError ();
-      pusherrormessage (buf, BUF_SIZE, _T ("Unable to enumerate ports"), err);
+      pusherrormessage (_T ("Unable to enumerate ports"), err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -519,7 +522,7 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
   if (rv == FALSE)
     {
       err = GetLastError ();
-      pusherrormessage (buf, BUF_SIZE, _T ("Unable to open XcvMonitor"), err);
+      pusherrormessage (_T ("Unable to open XcvMonitor"), err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -534,7 +537,7 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
   if (rv == FALSE)
     {
       err = GetLastError ();
-      pusherrormessage (buf, BUF_SIZE, _T ("Unable to add port"), err);
+      pusherrormessage (_T ("Unable to add port"), err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -587,8 +590,7 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
   err = copy_driverfiles (driverdir, &di);
   if (err)
     {
-      pusherrormessage (buf1, BUF_SIZE, _T ("Unable to copy driver files"),
-                        err);
+      pusherrormessage (_T ("Unable to copy driver files"), err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -597,8 +599,7 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
   if (rv == FALSE)
     {
       err = GetLastError ();
-      pusherrormessage (buf1, BUF_SIZE, _T ("Unable to add printer driver"),
-                        err);
+      pusherrormessage (_T ("Unable to add printer driver"), err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -650,7 +651,7 @@ nsAddPrinter (HWND hwndParent, int string_size, LPTSTR variables,
   if (hPrinter == NULL)
     {
       err = GetLastError ();
-      pusherrormessage (buf, BUF_SIZE, _T ("Unable to add printer"), err);
+      pusherrormessage (_T ("Unable to add printer"), err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -687,7 +688,7 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
   if (rv == FALSE)
     {
       err = GetLastError ();
-      pusherrormessage (buf, BUF_SIZE, _T ("Unable to open printer"), err);
+      pusherrormessage (_T ("Unable to open printer"), err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -696,7 +697,7 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
   if (rv == FALSE)
     {
       err = GetLastError ();
-      pusherrormessage (buf, BUF_SIZE, _T ("Unable to delete printer"), err);
+      pusherrormessage (_T ("Unable to delete printer"), err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -746,7 +747,7 @@ nsRedMonConfigurePort (HWND hwndParent, int string_size, LPTSTR variables,
   if (rv == FALSE)
     {
       err = GetLastError ();
-      pusherrormessage (buf, BUF_SIZE, _T ("Unable to open XcvMonitor"), err);
+      pusherrormessage (_T ("Unable to open XcvMonitor"), err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -757,7 +758,7 @@ nsRedMonConfigurePort (HWND hwndParent, int string_size, LPTSTR variables,
   if (rv == FALSE)
     {
       err = GetLastError ();
-      pusherrormessage (buf, BUF_SIZE, _T ("Unable to configure port"), err);
+      pusherrormessage (_T ("Unable to configure port"), err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -784,10 +785,7 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
   GetDefaultPrinter (NULL, &dwNeeded);
   if (dwNeeded > BUF_SIZE)
     {
-      pusherrormessage (buf, BUF_SIZE,
-                        _T
-                        ("Not enough buffer space for default printer name"),
-                        0);
+      pusherrormessage (_T ("Not enough buffer space for default printer name"), 0);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -796,8 +794,7 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
   if (rv == FALSE)
     {
       err = GetLastError ();
-      pusherrormessage (buf, BUF_SIZE, _T ("Unable to get default printer"),
-                        err);
+      pusherrormessage (_T ("Unable to get default printer"), err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }
@@ -824,8 +821,7 @@ nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
   if (rv == FALSE)
     {
       err = GetLastError ();
-      pusherrormessage (buf, BUF_SIZE, _T ("Unable to set default printer"),
-                        err);
+      pusherrormessage (_T ("Unable to set default printer"), err);
       setuservariable (INST_R0, _T ("-1"));
       goto cleanup;
     }

@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Mon 11 Apr 2016 03:47:31 PM PDT
+ * Modified: Mon 11 Apr 2016 04:05:35 PM PDT
  *
  * Copyright (C) 2014-2016 Robert Gill <locke@sdf.lonestar.org>
  *
@@ -19,9 +19,9 @@
 #include <winspool.h>
 #include <tchar.h>
 
+#include "printer.h"
 #include "pluginapi.h"
 #include "portmon.h"
-#include "printdlg.h"
 #include "redmonrc.h"
 
 #ifdef __cplusplus

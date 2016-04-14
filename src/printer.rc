@@ -1,11 +1,11 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Mon 11 Apr 2016 04:02:37 PM PDT
+ * Modified: Mon 11 Apr 2016 04:09:18 PM PDT
  *
  */
 
 #include <windows.h>
-#include "printdlg.h"
+#include "printer.h"
 
 IDD_PRINTER_SELECT DIALOGEX 100, 50, 175, 50
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU

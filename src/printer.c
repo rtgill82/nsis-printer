@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Wed 13 Apr 2016 10:41:10 PM PDT
+ * Modified: Thu 14 Apr 2016 12:39:09 AM PDT
  *
  * Copyright (C) 2014-2016 Robert Gill <locke@sdf.lonestar.org>
  *
@@ -424,7 +424,7 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   return TRUE;
 }
 
-void DLLEXPORT
+void DLLEXPORT WINAPI
 nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t ** stacktop)
 {
@@ -454,7 +454,7 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
   printerName = NULL;
 }
 
-void DLLEXPORT
+void DLLEXPORT WINAPI
 nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
              stack_t ** stacktop)
 {
@@ -494,7 +494,7 @@ cleanup:
   GlobalFree (portinfo);
 }
 
-void DLLEXPORT
+void DLLEXPORT WINAPI
 nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
            stack_t ** stacktop)
 {
@@ -550,7 +550,7 @@ cleanup:
   GlobalFree (monbuf);
 }
 
-void DLLEXPORT
+void DLLEXPORT WINAPI
 nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
                     stack_t ** stacktop)
 {
@@ -615,7 +615,7 @@ cleanup:
   GlobalFree (inifile);
 }
 
-void DLLEXPORT
+void DLLEXPORT WINAPI
 nsAddPrinter (HWND hwndParent, int string_size, LPTSTR variables,
               stack_t ** stacktop)
 {
@@ -666,7 +666,7 @@ cleanup:
   GlobalFree (printerInfo.pPrinterName);
 }
 
-void DLLEXPORT
+void DLLEXPORT WINAPI
 nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
                  stack_t ** stacktop)
 {
@@ -709,7 +709,7 @@ cleanup:
   GlobalFree (buf);
 }
 
-void DLLEXPORT
+void DLLEXPORT WINAPI
 nsRedMonConfigurePort (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t ** stacktop)
 {
@@ -770,7 +770,7 @@ cleanup:
   GlobalFree (buf);
 }
 
-void DLLEXPORT
+void DLLEXPORT WINAPI
 nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
                      stack_t ** stacktop)
 {
@@ -806,7 +806,7 @@ cleanup:
   GlobalFree (buf);
 }
 
-void DLLEXPORT
+void DLLEXPORT WINAPI
 nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
                      stack_t ** stacktop)
 {

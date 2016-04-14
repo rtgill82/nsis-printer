@@ -21,8 +21,8 @@ endif
 DLLNAME = Printer.dll
 DLL_OBJS = pluginapi.o printer.o
 
-RES_SRC  = printdlg.rc
-RES_OBJ = printdlg.o
+RES_SRC  = printer.rc
+RES_OBJ = printer-rc.o
 LDLIBS = -lwinspool
 
 all: $(DLLNAME)

@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Mon 11 Apr 2016 04:05:35 PM PDT
+ * Modified: Wed 13 Apr 2016 10:41:10 PM PDT
  *
  * Copyright (C) 2014-2016 Robert Gill <locke@sdf.lonestar.org>
  *
@@ -424,7 +424,7 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   return TRUE;
 }
 
-void __declspec (dllexport)
+void DLLEXPORT
 nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t ** stacktop)
 {
@@ -454,7 +454,7 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
   printerName = NULL;
 }
 
-void __declspec (dllexport)
+void DLLEXPORT
 nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
              stack_t ** stacktop)
 {
@@ -494,7 +494,7 @@ cleanup:
   GlobalFree (portinfo);
 }
 
-void __declspec (dllexport)
+void DLLEXPORT
 nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
            stack_t ** stacktop)
 {
@@ -550,7 +550,7 @@ cleanup:
   GlobalFree (monbuf);
 }
 
-void __declspec (dllexport)
+void DLLEXPORT
 nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
                     stack_t ** stacktop)
 {
@@ -615,7 +615,7 @@ cleanup:
   GlobalFree (inifile);
 }
 
-void __declspec (dllexport)
+void DLLEXPORT
 nsAddPrinter (HWND hwndParent, int string_size, LPTSTR variables,
               stack_t ** stacktop)
 {
@@ -666,7 +666,7 @@ cleanup:
   GlobalFree (printerInfo.pPrinterName);
 }
 
-void __declspec (dllexport)
+void DLLEXPORT
 nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
                  stack_t ** stacktop)
 {
@@ -709,7 +709,7 @@ cleanup:
   GlobalFree (buf);
 }
 
-void __declspec (dllexport)
+void DLLEXPORT
 nsRedMonConfigurePort (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t ** stacktop)
 {
@@ -770,7 +770,7 @@ cleanup:
   GlobalFree (buf);
 }
 
-void __declspec (dllexport)
+void DLLEXPORT
 nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
                      stack_t ** stacktop)
 {
@@ -806,7 +806,7 @@ cleanup:
   GlobalFree (buf);
 }
 
-void __declspec (dllexport)
+void DLLEXPORT
 nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
                      stack_t ** stacktop)
 {

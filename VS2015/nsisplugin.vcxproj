@@ -15,7 +15,7 @@
     <ClCompile Include="..\src\printer.c" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\src\printdlg.rc" />
+    <ResourceCompile Include="..\src\printer.rc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\api.h" />
@@ -77,6 +77,8 @@
       <PrecompiledHeaderOutputFile />
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -97,6 +99,8 @@
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -20,7 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\src\printdlg.rc">
+    <ResourceCompile Include="..\src\printer.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

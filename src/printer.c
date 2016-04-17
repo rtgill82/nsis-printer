@@ -1,16 +1,21 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Thu 14 Apr 2016 12:39:09 AM PDT
+ * Modified: Sat 16 Apr 2016 08:48:34 PM PDT
  *
- * Copyright (C) 2014-2016 Robert Gill <locke@sdf.lonestar.org>
+ * Copyright (C) 2014-2016  Robert Gill
  *
- * Licensed under the zlib/libpng license (the "License");
- * you may not use this file except in compliance with the License.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * Licence details can be found in the file COPYING.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * This software is provided 'as-is', without any express or implied
- * warranty.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 

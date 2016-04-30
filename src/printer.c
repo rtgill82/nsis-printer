@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sat 30 Apr 2016 03:18:35 PM PDT
+ * Modified: Sat 30 Apr 2016 03:52:27 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -448,8 +448,8 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
     }
 
   printerName = (LPTSTR) DialogBoxParam (g_hInstance,
-                  MAKEINTRESOURCE (IDD_PRINTER_SELECT), hwndParent,
-                  printer_select_dialog_proc, (LPARAM) &opts);
+                 MAKEINTRESOURCE (IDD_PRINTER_SELECT), hwndParent,
+                 printer_select_dialog_proc, (LPARAM) &opts);
 
   pushstring (printerName);
   GlobalFree (opts.lpbPrinterInfo);

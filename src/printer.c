@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sat 30 Apr 2016 02:26:06 PM PDT
+ * Modified: Sat 30 Apr 2016 02:44:20 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -75,12 +75,6 @@ static HINSTANCE g_hInstance;
 
 #define ERRBUF_SIZE 1024
 static TCHAR errbuf[ERRBUF_SIZE];
-
-/*
- * Does printerName need to be global?
- * How do you pass results back from a DialogBox?
- */
-static LPTSTR printerName;
 
 static void NSISCALL
 pusherrormessage (LPCTSTR msg, DWORD err)
@@ -382,6 +376,7 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   unsigned int idx, len;
   static HWND prnCombo = NULL;
   struct printer_select_dialog_opts_s *opts;
+  LPTSTR printerName;
 
   switch (msg)
     {
@@ -418,7 +413,7 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
 
           prnCombo = NULL;
-          EndDialog (hwnd, IDOK);
+          EndDialog (hwnd, (INT_PTR) printerName);
           break;
         }
       break;
@@ -434,8 +429,9 @@ void DLLEXPORT
 nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t ** stacktop)
 {
-  struct printer_select_dialog_opts_s opts;
+  LPTSTR printerName;
   DWORD dwNeeded = 0;
+  struct printer_select_dialog_opts_s opts;
 
   EXDLL_INIT ();
   ZeroMemory (&opts, sizeof (struct printer_select_dialog_opts_s));
@@ -451,13 +447,13 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
                     dwNeeded, &dwNeeded, &opts.dwPrintersNum);
     }
 
-  DialogBoxParam (g_hInstance, MAKEINTRESOURCE (IDD_PRINTER_SELECT),
-                  hwndParent, printer_select_dialog_proc, (LPARAM) &opts);
+  printerName = (LPTSTR) DialogBoxParam (g_hInstance,
+                  MAKEINTRESOURCE (IDD_PRINTER_SELECT), hwndParent,
+                  printer_select_dialog_proc, (LPARAM) &opts);
 
   pushstring (printerName);
   GlobalFree (opts.lpbPrinterInfo);
   GlobalFree (printerName);
-  printerName = NULL;
 }
 
 void DLLEXPORT

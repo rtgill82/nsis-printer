@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sat 16 Apr 2016 10:11:44 PM PDT
+ * Modified: Sat 30 Apr 2016 02:26:06 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -110,6 +110,7 @@ alloc_strcpy (LPTSTR str)
   return newstr;
 }
 
+/* Parse dependent files in driver ini file. */
 static LPTSTR
 parse_depfiles (LPTSTR str)
 {

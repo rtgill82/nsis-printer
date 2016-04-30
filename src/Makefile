@@ -6,9 +6,6 @@ CCPATH = /usr/bin
 CC  = $(CCPATH)/$(HOST)-gcc
 RC = $(CCPATH)/$(HOST)-windres
 
-INCLUDE = -I../include
-CPPFLAGS += $(INCLUDE)
-
 CFLAGS += -fno-strict-aliasing -DNSISCALL="__attribute__((__stdcall__))"
 LDFLAGS += -mwindows -Wl,--kill-at -static-libgcc -shared
 

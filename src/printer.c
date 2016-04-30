@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sat 30 Apr 2016 02:44:20 PM PDT
+ * Modified: Sat 30 Apr 2016 02:47:22 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -712,67 +712,6 @@ cleanup:
 }
 
 void DLLEXPORT
-nsRedMonConfigurePort (HWND hwndParent, int string_size, LPTSTR variables,
-                       stack_t ** stacktop)
-{
-  RECONFIG config;
-  PRINTER_DEFAULTS pd;
-  DWORD dwNeeded, dwStatus;
-  DWORD err;
-  BOOL rv;
-
-  HANDLE hPrinter = NULL;
-  TCHAR *buf = NULL;
-
-  EXDLL_INIT ();
-  ZeroMemory (&config, sizeof (RECONFIG));
-  config.dwSize = sizeof (RECONFIG);
-  config.dwVersion = VERSION_NUMBER;
-  config.dwOutput = OUTPUT_SELF;
-  config.dwShow = FALSE;
-  config.dwRunUser = TRUE;
-  config.dwDelay = DEFAULT_DELAY;
-  config.dwLogFileDebug = FALSE;
-
-  pd.pDatatype = NULL;
-  pd.pDevMode = NULL;
-  pd.DesiredAccess = SERVER_ACCESS_ADMINISTER;
-
-  buf = GlobalAlloc (GPTR, BUF_SIZE);
-  popstring (buf);
-  lstrcpy (config.szPortName, buf);
-  popstring (buf);
-  lstrcpy (config.szCommand, buf);
-  lstrcpy (config.szDescription, _T ("Redirected Port"));
-
-  rv = OpenPrinter (_T (",XcvMonitor Redirected Port"), &hPrinter, &pd);
-  if (rv == FALSE)
-    {
-      err = GetLastError ();
-      pusherrormessage (_T ("Unable to open XcvMonitor"), err);
-      setuservariable (INST_R0, _T ("-1"));
-      goto cleanup;
-    }
-
-  rv =
-    XcvData (hPrinter, L"SetConfig", (PBYTE) (&config), sizeof (RECONFIG),
-             NULL, 0, &dwNeeded, &dwStatus);
-  if (rv == FALSE)
-    {
-      err = GetLastError ();
-      pusherrormessage (_T ("Unable to configure port"), err);
-      setuservariable (INST_R0, _T ("-1"));
-      goto cleanup;
-    }
-
-  setuservariable (INST_R0, _T ("0"));
-
-cleanup:
-  ClosePrinter (hPrinter);
-  GlobalFree (buf);
-}
-
-void DLLEXPORT
 nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
                      stack_t ** stacktop)
 {
@@ -831,6 +770,67 @@ nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
   setuservariable (INST_R0, _T ("0"));
 
 cleanup:
+  GlobalFree (buf);
+}
+
+void DLLEXPORT
+nsRedMonConfigurePort (HWND hwndParent, int string_size, LPTSTR variables,
+                       stack_t ** stacktop)
+{
+  RECONFIG config;
+  PRINTER_DEFAULTS pd;
+  DWORD dwNeeded, dwStatus;
+  DWORD err;
+  BOOL rv;
+
+  HANDLE hPrinter = NULL;
+  TCHAR *buf = NULL;
+
+  EXDLL_INIT ();
+  ZeroMemory (&config, sizeof (RECONFIG));
+  config.dwSize = sizeof (RECONFIG);
+  config.dwVersion = VERSION_NUMBER;
+  config.dwOutput = OUTPUT_SELF;
+  config.dwShow = FALSE;
+  config.dwRunUser = TRUE;
+  config.dwDelay = DEFAULT_DELAY;
+  config.dwLogFileDebug = FALSE;
+
+  pd.pDatatype = NULL;
+  pd.pDevMode = NULL;
+  pd.DesiredAccess = SERVER_ACCESS_ADMINISTER;
+
+  buf = GlobalAlloc (GPTR, BUF_SIZE);
+  popstring (buf);
+  lstrcpy (config.szPortName, buf);
+  popstring (buf);
+  lstrcpy (config.szCommand, buf);
+  lstrcpy (config.szDescription, _T ("Redirected Port"));
+
+  rv = OpenPrinter (_T (",XcvMonitor Redirected Port"), &hPrinter, &pd);
+  if (rv == FALSE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to open XcvMonitor"), err);
+      setuservariable (INST_R0, _T ("-1"));
+      goto cleanup;
+    }
+
+  rv =
+    XcvData (hPrinter, L"SetConfig", (PBYTE) (&config), sizeof (RECONFIG),
+             NULL, 0, &dwNeeded, &dwStatus);
+  if (rv == FALSE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to configure port"), err);
+      setuservariable (INST_R0, _T ("-1"));
+      goto cleanup;
+    }
+
+  setuservariable (INST_R0, _T ("0"));
+
+cleanup:
+  ClosePrinter (hPrinter);
   GlobalFree (buf);
 }
 

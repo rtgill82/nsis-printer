@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sat 30 Apr 2016 03:52:27 PM PDT
+ * Modified: Sat 30 Apr 2016 04:01:17 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -506,15 +506,14 @@ nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to enumerate ports"), err);
-      setuservariable (INST_R0, _T ("-1"));
+      pushint(-1);
       goto cleanup;
     }
 
   for (i = pcReturned - 1; i >= 0; i--)
     pushstring (portinfo[i].pName);
 
-  _sntprintf (buf, BUF_SIZE, _T ("%ld"), pcReturned);
-  setuservariable (INST_R0, buf);
+  pushint(pcReturned);
 
 cleanup:
   GlobalFree (buf);
@@ -550,7 +549,7 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open XcvMonitor"), err);
-      setuservariable (INST_R0, _T ("-1"));
+      pushint(-1);
       goto cleanup;
     }
 
@@ -565,11 +564,11 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add port"), err);
-      setuservariable (INST_R0, _T ("-1"));
+      pushint(-1);
       goto cleanup;
     }
 
-  setuservariable (INST_R0, _T ("0"));
+  pushint(0);
 
 cleanup:
   ClosePrinter (hPrinter);
@@ -618,7 +617,7 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
   if (err)
     {
       pusherrormessage (_T ("Unable to copy driver files"), err);
-      setuservariable (INST_R0, _T ("-1"));
+      pushint(-1);
       goto cleanup;
     }
 
@@ -627,12 +626,12 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add printer driver"), err);
-      setuservariable (INST_R0, _T ("-1"));
+      pushint(-1);
       goto cleanup;
     }
 
   delete_driverfiles (&di);
-  setuservariable (INST_R0, _T ("0"));
+  pushint(0);
 
 cleanup:
   cleanup_driverinfo (&di);
@@ -679,11 +678,11 @@ nsAddPrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add printer"), err);
-      setuservariable (INST_R0, _T ("-1"));
+      pushint(-1);
       goto cleanup;
     }
 
-  setuservariable (INST_R0, _T ("0"));
+  pushint(0);
 
 cleanup:
   ClosePrinter (hPrinter);
@@ -716,7 +715,7 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open printer"), err);
-      setuservariable (INST_R0, _T ("-1"));
+      pushint(-1);
       goto cleanup;
     }
 
@@ -725,11 +724,11 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to delete printer"), err);
-      setuservariable (INST_R0, _T ("-1"));
+      pushint(-1);
       goto cleanup;
     }
 
-  setuservariable (INST_R0, _T ("0"));
+  pushint(0);
 
 cleanup:
   ClosePrinter (hPrinter);
@@ -752,7 +751,7 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
   if (dwNeeded > BUF_SIZE)
     {
       pusherrormessage (_T ("Not enough buffer space for default printer name"), 0);
-      setuservariable (INST_R0, _T ("-1"));
+      pushint(-1);
       goto cleanup;
     }
 
@@ -761,12 +760,12 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to get default printer"), err);
-      setuservariable (INST_R0, _T ("-1"));
+      pushint(-1);
       goto cleanup;
     }
 
   pushstring (buf);
-  setuservariable (INST_R0, _T ("0"));
+  pushint(0);
 
 cleanup:
   GlobalFree (buf);
@@ -788,11 +787,11 @@ nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to set default printer"), err);
-      setuservariable (INST_R0, _T ("-1"));
+      pushint(-1);
       goto cleanup;
     }
 
-  setuservariable (INST_R0, _T ("0"));
+  pushint(0);
 
 cleanup:
   GlobalFree (buf);
@@ -837,7 +836,7 @@ nsRedMonConfigurePort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open XcvMonitor"), err);
-      setuservariable (INST_R0, _T ("-1"));
+      pushint(-1);
       goto cleanup;
     }
 
@@ -848,11 +847,11 @@ nsRedMonConfigurePort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to configure port"), err);
-      setuservariable (INST_R0, _T ("-1"));
+      pushint(-1);
       goto cleanup;
     }
 
-  setuservariable (INST_R0, _T ("0"));
+  pushint(0);
 
 cleanup:
   ClosePrinter (hPrinter);

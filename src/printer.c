@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sat 30 Apr 2016 02:47:22 PM PDT
+ * Modified: Sat 30 Apr 2016 03:18:35 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -454,6 +454,31 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
   pushstring (printerName);
   GlobalFree (opts.lpbPrinterInfo);
   GlobalFree (printerName);
+}
+
+void DLLEXPORT
+nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
+                stack_t ** stacktop)
+{
+  DWORD dwNeeded;
+  DWORD dwPrintersNum;
+  LPPRINTER_INFO lpbPrinterInfo;
+  int idx;
+
+  EXDLL_INIT();
+  EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
+                LPPRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &dwPrintersNum);
+
+  lpbPrinterInfo = (LPPRINTER_INFO) GlobalAlloc (GPTR, dwNeeded);
+  EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
+                LPPRINTER_INFO_LEVEL, (LPBYTE) lpbPrinterInfo,
+                dwNeeded, &dwNeeded, &dwPrintersNum);
+
+  for (idx = 0; idx < dwPrintersNum; idx++)
+    pushstring(lpbPrinterInfo[idx].pPrinterName);
+
+  pushint(dwPrintersNum);
+  GlobalFree(lpbPrinterInfo);
 }
 
 void DLLEXPORT

@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sun 01 May 2016 03:23:24 PM PDT
+ * Modified: Sun 01 May 2016 03:43:00 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -457,24 +457,36 @@ void DLLEXPORT
 nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
                 stack_t ** stacktop)
 {
-  DWORD dwNeeded;
-  DWORD dwPrintersNum;
-  DWORD idx;
-  LPPRINTER_INFO lpbPrinterInfo;
+  int i;
+  DWORD dwNeeded, dwPrintersNum;
+  DWORD err;
+  BOOL rv;
+
+  LPPRINTER_INFO lpbPrinterInfo = NULL;
 
   EXDLL_INIT();
   EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
                 LPPRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &dwPrintersNum);
 
   lpbPrinterInfo = (LPPRINTER_INFO) GlobalAlloc (GPTR, dwNeeded);
-  EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
-                LPPRINTER_INFO_LEVEL, (LPBYTE) lpbPrinterInfo,
-                dwNeeded, &dwNeeded, &dwPrintersNum);
+  rv = EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
+                     LPPRINTER_INFO_LEVEL, (LPBYTE) lpbPrinterInfo,
+                     dwNeeded, &dwNeeded, &dwPrintersNum);
 
-  for (idx = 0; idx < dwPrintersNum; idx++)
-    pushstring(lpbPrinterInfo[idx].pPrinterName);
+  if (rv != TRUE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to enumerate printers"), err);
+      pushint(-1);
+      goto cleanup;
+    }
+
+  for (i = 0; i < dwPrintersNum - 1; i++)
+    pushstring(lpbPrinterInfo[i].pPrinterName);
 
   pushint(dwPrintersNum);
+
+cleanup:
   GlobalFree(lpbPrinterInfo);
 }
 

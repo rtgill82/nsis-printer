@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sun 01 May 2016 03:50:33 PM PDT
+ * Modified: Sun 01 May 2016 04:08:45 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -713,6 +713,8 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
 
   EXDLL_INIT ();
   buf = GlobalAlloc (GPTR, BUF_SIZE);
+
+  /* Printer Name */
   popstring (buf);
   rv = OpenPrinter (buf, &hPrinter, &pd);
   if (rv == FALSE)
@@ -769,7 +771,6 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
     }
 
   pushstring (buf);
-  pushint(0);
 
 cleanup:
   GlobalFree (buf);
@@ -785,6 +786,8 @@ nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
 
   EXDLL_INIT ();
   buf = GlobalAlloc (GPTR, BUF_SIZE);
+
+  /* Printer Name */
   popstring (buf);
   rv = SetDefaultPrinter (buf);
   if (rv == FALSE)
@@ -802,7 +805,7 @@ cleanup:
 }
 
 void DLLEXPORT
-nsRedMonConfigurePort (HWND hwndParent, int string_size, LPTSTR variables,
+nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t ** stacktop)
 {
   DWORD dwNeeded, dwStatus;
@@ -829,8 +832,12 @@ nsRedMonConfigurePort (HWND hwndParent, int string_size, LPTSTR variables,
   pd.DesiredAccess = SERVER_ACCESS_ADMINISTER;
 
   buf = GlobalAlloc (GPTR, BUF_SIZE);
+
+  /* Port Name */
   popstring (buf);
   lstrcpy (config.szPortName, buf);
+
+  /* Command */
   popstring (buf);
   lstrcpy (config.szCommand, buf);
   lstrcpy (config.szDescription, _T ("Redirected Port"));

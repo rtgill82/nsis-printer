@@ -25,25 +25,25 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\api.h">
+    <ClInclude Include="..\src\api.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\nsis_tchar.h">
+    <ClInclude Include="..\src\nsis_tchar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\pluginapi.h">
+    <ClInclude Include="..\src\pluginapi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\portmon.h">
+    <ClInclude Include="..\src\portmon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\portrc.h">
+    <ClInclude Include="..\src\portrc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\printdlg.h">
+    <ClInclude Include="..\src\printer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\redmonrc.h">
+    <ClInclude Include="..\src\redmonrc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

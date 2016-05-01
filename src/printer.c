@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sun 01 May 2016 03:45:51 PM PDT
+ * Modified: Sun 01 May 2016 03:50:33 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -216,18 +216,18 @@ max_driverfile_name (DRIVER_INFO * di)
 static DWORD
 copy_driverfiles (LPTSTR srcdir, DRIVER_INFO * di)
 {
-  DWORD pcbNeeded;
   LPTSTR filename;
   size_t srcbuflen, destbuflen, filemax;
+  DWORD dwNeeded;
   BOOL rv;
 
-  DWORD err = 0;
   LPTSTR dest = NULL, src = NULL, driverdir = NULL;
+  DWORD err = 0;
 
-  GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, NULL, 0, &pcbNeeded);
-  driverdir = GlobalAlloc (GPTR, pcbNeeded);
+  GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, NULL, 0, &dwNeeded);
+  driverdir = GlobalAlloc (GPTR, dwNeeded);
   GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, (LPBYTE) driverdir,
-                             pcbNeeded, &pcbNeeded);
+                             dwNeeded, &dwNeeded);
 
   filemax = max_driverfile_name (di);
   srcbuflen = (_tcslen (srcdir) + filemax + 2) * sizeof (TCHAR);
@@ -299,18 +299,18 @@ cleanup:
 static DWORD
 delete_driverfiles (DRIVER_INFO * di)
 {
-  DWORD pcbNeeded;
   LPTSTR filename;
   size_t filemax, buflen;
+  DWORD dwNeeded;
   BOOL rv;
 
-  DWORD err = 0;
   LPTSTR driverdir = NULL, filepath = NULL;
+  DWORD err = 0;
 
-  GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, NULL, 0, &pcbNeeded);
-  driverdir = GlobalAlloc (GPTR, pcbNeeded);
+  GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, NULL, 0, &dwNeeded);
+  driverdir = GlobalAlloc (GPTR, dwNeeded);
   GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, (LPBYTE) driverdir,
-                             pcbNeeded, &pcbNeeded);
+                             dwNeeded, &dwNeeded);
 
   filemax = max_driverfile_name (di);
   buflen = (_tcslen (driverdir) + filemax + 2) * sizeof (TCHAR);

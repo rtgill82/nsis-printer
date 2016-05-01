@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sun 01 May 2016 03:43:00 PM PDT
+ * Modified: Sun 01 May 2016 03:45:51 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -495,18 +495,17 @@ nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
              stack_t ** stacktop)
 {
   int i;
-  DWORD pcbNeeded, pcReturned;
+  DWORD dwNeeded, dwPortsNum;
   DWORD err;
   BOOL rv;
 
   PORT_INFO_1 *portinfo = NULL;
 
   EXDLL_INIT ();
-  EnumPorts (NULL, 1, NULL, 0, &pcbNeeded, &pcReturned);
-  portinfo = GlobalAlloc (GPTR, pcbNeeded);
+  EnumPorts (NULL, 1, NULL, 0, &dwNeeded, &dwPortsNum);
+  portinfo = GlobalAlloc (GPTR, dwNeeded);
 
-  rv =
-    EnumPorts (NULL, 1, (PBYTE) portinfo, pcbNeeded, &pcbNeeded, &pcReturned);
+  rv = EnumPorts (NULL, 1, (PBYTE) portinfo, dwNeeded, &dwNeeded, &dwPortsNum);
 
   if (rv != TRUE)
     {
@@ -516,10 +515,10 @@ nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
       goto cleanup;
     }
 
-  for (i = pcReturned - 1; i >= 0; i--)
+  for (i = dwPortsNum - 1; i >= 0; i--)
     pushstring (portinfo[i].pName);
 
-  pushint(pcReturned);
+  pushint(dwPortsNum);
 
 cleanup:
   GlobalFree (portinfo);

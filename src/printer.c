@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sun 01 May 2016 04:45:45 PM PDT
+ * Modified: Sun 01 May 2016 04:57:41 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -444,8 +444,10 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
                 dwNeeded, &dwNeeded, &opts.dwPrintersNum);
 
   printerName = (LPTSTR) DialogBoxParam (g_hInstance,
-                 MAKEINTRESOURCE (IDD_PRINTER_SELECT), hwndParent,
-                 printer_select_dialog_proc, (LPARAM) &opts);
+                                         MAKEINTRESOURCE (IDD_PRINTER_SELECT),
+                                         hwndParent,
+                                         printer_select_dialog_proc,
+                                         (LPARAM) & opts);
 
   pushstring (printerName);
   GlobalFree (opts.lpbPrinterInfo);
@@ -463,7 +465,7 @@ nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
 
   LPPRINTER_INFO lpbPrinterInfo = NULL;
 
-  EXDLL_INIT();
+  EXDLL_INIT ();
   EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
                 LPPRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &dwPrintersNum);
 
@@ -476,17 +478,17 @@ nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to enumerate printers"), err);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
   for (i = 0; i < dwPrintersNum - 1; i++)
-    pushstring(lpbPrinterInfo[i].pPrinterName);
+    pushstring (lpbPrinterInfo[i].pPrinterName);
 
-  pushint(dwPrintersNum);
+  pushint (dwPrintersNum);
 
 cleanup:
-  GlobalFree(lpbPrinterInfo);
+  GlobalFree (lpbPrinterInfo);
 }
 
 void DLLEXPORT
@@ -504,20 +506,21 @@ nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
   EnumPorts (NULL, 1, NULL, 0, &dwNeeded, &dwPortsNum);
   portinfo = GlobalAlloc (GPTR, dwNeeded);
 
-  rv = EnumPorts (NULL, 1, (PBYTE) portinfo, dwNeeded, &dwNeeded, &dwPortsNum);
+  rv =
+    EnumPorts (NULL, 1, (PBYTE) portinfo, dwNeeded, &dwNeeded, &dwPortsNum);
 
   if (rv != TRUE)
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to enumerate ports"), err);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
   for (i = dwPortsNum - 1; i >= 0; i--)
     pushstring (portinfo[i].pName);
 
-  pushint(dwPortsNum);
+  pushint (dwPortsNum);
 
 cleanup:
   GlobalFree (portinfo);
@@ -552,7 +555,7 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open XcvMonitor"), err);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
@@ -567,11 +570,11 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add port"), err);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
-  pushint(0);
+  pushint (0);
 
 cleanup:
   ClosePrinter (hPrinter);
@@ -620,7 +623,7 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
   if (err)
     {
       pusherrormessage (_T ("Unable to copy driver files"), err);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
@@ -629,12 +632,12 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add printer driver"), err);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
   delete_driverfiles (&di);
-  pushint(0);
+  pushint (0);
 
 cleanup:
   cleanup_driverinfo (&di);
@@ -681,11 +684,11 @@ nsAddPrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add printer"), err);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
-  pushint(0);
+  pushint (0);
 
 cleanup:
   ClosePrinter (hPrinter);
@@ -720,7 +723,7 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open printer"), err);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
@@ -729,11 +732,11 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to delete printer"), err);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
-  pushint(0);
+  pushint (0);
 
 cleanup:
   ClosePrinter (hPrinter);
@@ -755,7 +758,7 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
   if (dwNeeded > BUF_SIZE)
     {
       pusherrormessage (_T ("Not enough buffer space for default printer name"), 0);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
@@ -764,7 +767,7 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to get default printer"), err);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
@@ -792,11 +795,11 @@ nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to set default printer"), err);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
-  pushint(0);
+  pushint (0);
 
 cleanup:
   GlobalFree (buf);
@@ -845,7 +848,7 @@ nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open XcvMonitor"), err);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
@@ -856,11 +859,11 @@ nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to configure port"), err);
-      pushint(-1);
+      pushint (-1);
       goto cleanup;
     }
 
-  pushint(0);
+  pushint (0);
 
 cleanup:
   ClosePrinter (hPrinter);

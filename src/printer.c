@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sat 30 Apr 2016 04:01:17 PM PDT
+ * Modified: Sun 01 May 2016 02:36:28 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -491,11 +491,8 @@ nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
   BOOL rv;
 
   PORT_INFO_1 *portinfo = NULL;
-  TCHAR *buf = NULL;
 
   EXDLL_INIT ();
-  buf = GlobalAlloc (GPTR, BUF_SIZE);
-
   EnumPorts (NULL, 1, NULL, 0, &pcbNeeded, &pcReturned);
   portinfo = GlobalAlloc (GPTR, pcbNeeded);
 
@@ -516,7 +513,6 @@ nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
   pushint(pcReturned);
 
 cleanup:
-  GlobalFree (buf);
   GlobalFree (portinfo);
 }
 

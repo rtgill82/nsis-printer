@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sun 01 May 2016 04:08:45 PM PDT
+ * Modified: Sun 01 May 2016 04:45:45 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -110,10 +110,9 @@ parse_depfiles (LPTSTR str)
 {
   LPTSTR multisz;
   LPTSTR p, pstr, pmultisz;
-  size_t cnt;
+  size_t cnt = 0;
 
   multisz = GlobalAlloc (GPTR, (_tcslen (str) + 2) * sizeof (TCHAR));
-  cnt = 0;
   pstr = str;
   pmultisz = multisz;
   for (p = str; *p; p++)
@@ -374,9 +373,9 @@ INT_PTR CALLBACK
 printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   unsigned int idx, len;
-  static HWND prnCombo = NULL;
   struct printer_select_dialog_opts_s *opts;
   LPTSTR printerName;
+  static HWND prnCombo = NULL;
 
   switch (msg)
     {
@@ -401,7 +400,7 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           idx = SendMessage (prnCombo, CB_GETCURSEL, 0, 0);
           len = SendMessage (prnCombo, CB_GETLBTEXTLEN, idx, 0);
           printerName =
-            (TCHAR *) GlobalAlloc (GPTR, (len + 1) * sizeof (TCHAR));
+            (LPTSTR) GlobalAlloc (GPTR, (len + 1) * sizeof (TCHAR));
 
           if (idx == 0)
             {
@@ -430,7 +429,7 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t ** stacktop)
 {
   LPTSTR printerName;
-  DWORD dwNeeded = 0;
+  DWORD dwNeeded;
   struct printer_select_dialog_opts_s opts;
 
   EXDLL_INIT ();
@@ -533,7 +532,7 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
   BOOL rv;
 
   HANDLE hPrinter = NULL;
-  TCHAR *buf = NULL, *monbuf = NULL;
+  LPTSTR buf = NULL, monbuf = NULL;
 
   PRINTER_DEFAULTS pd;
   pd.pDatatype = NULL;
@@ -752,7 +751,6 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
   EXDLL_INIT ();
   buf = GlobalAlloc (GPTR, BUF_SIZE);
 
-  dwNeeded = 0;
   GetDefaultPrinter (NULL, &dwNeeded);
   if (dwNeeded > BUF_SIZE)
     {

@@ -462,8 +462,8 @@ nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
 {
   DWORD dwNeeded;
   DWORD dwPrintersNum;
+  DWORD idx;
   LPPRINTER_INFO lpbPrinterInfo;
-  int idx;
 
   EXDLL_INIT();
   EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,

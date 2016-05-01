@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sun 01 May 2016 02:36:28 PM PDT
+ * Modified: Sun 01 May 2016 02:44:11 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -440,12 +440,9 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
                 &opts.dwPrintersNum);
 
   opts.lpbPrinterInfo = (LPPRINTER_INFO) GlobalAlloc (GPTR, dwNeeded);
-  if (opts.lpbPrinterInfo)
-    {
-      EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
-                    LPPRINTER_INFO_LEVEL, (LPBYTE) opts.lpbPrinterInfo,
-                    dwNeeded, &dwNeeded, &opts.dwPrintersNum);
-    }
+  EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
+                LPPRINTER_INFO_LEVEL, (LPBYTE) opts.lpbPrinterInfo,
+                dwNeeded, &dwNeeded, &opts.dwPrintersNum);
 
   printerName = (LPTSTR) DialogBoxParam (g_hInstance,
                  MAKEINTRESOURCE (IDD_PRINTER_SELECT), hwndParent,

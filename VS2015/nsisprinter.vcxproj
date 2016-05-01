@@ -18,13 +18,13 @@
     <ResourceCompile Include="..\src\printer.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\api.h" />
-    <ClInclude Include="..\include\nsis_tchar.h" />
-    <ClInclude Include="..\include\pluginapi.h" />
-    <ClInclude Include="..\include\portmon.h" />
-    <ClInclude Include="..\include\portrc.h" />
-    <ClInclude Include="..\include\printdlg.h" />
-    <ClInclude Include="..\include\redmonrc.h" />
+    <ClInclude Include="..\src\api.h" />
+    <ClInclude Include="..\src\nsis_tchar.h" />
+    <ClInclude Include="..\src\pluginapi.h" />
+    <ClInclude Include="..\src\portmon.h" />
+    <ClInclude Include="..\src\portrc.h" />
+    <ClInclude Include="..\src\printer.h" />
+    <ClInclude Include="..\src\redmonrc.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9B425C1A-19A6-4F1F-8F0C-D789FBBE6CC8}</ProjectGuid>

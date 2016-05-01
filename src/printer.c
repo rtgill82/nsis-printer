@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sun 01 May 2016 02:44:11 PM PDT
+ * Modified: Sun 01 May 2016 03:23:24 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -574,12 +574,12 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
                     stack_t ** stacktop)
 {
   DWORD arch;
-  DRIVER_INFO di;
   DWORD err;
+  DRIVER_INFO di;
   BOOL rv;
 
   LPTSTR driverdir = NULL, inifile = NULL;
-  TCHAR *buf1 = NULL, *buf2 = NULL;
+  LPTSTR buf1 = NULL, buf2 = NULL;
 
   EXDLL_INIT ();
   ZeroMemory (&di, sizeof (DRIVER_INFO));
@@ -642,7 +642,7 @@ nsAddPrinter (HWND hwndParent, int string_size, LPTSTR variables,
   DWORD err;
 
   HANDLE hPrinter = NULL;
-  TCHAR *buf = NULL;
+  LPTSTR buf = NULL;
 
   EXDLL_INIT ();
   ZeroMemory (&printerInfo, sizeof (PRINTER_INFO_2));
@@ -689,13 +689,13 @@ void DLLEXPORT
 nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
                  stack_t ** stacktop)
 {
-  BOOL rv;
   DWORD err;
+  PRINTER_DEFAULTS pd;
+  BOOL rv;
 
   HANDLE hPrinter = NULL;
-  TCHAR *buf = NULL;
+  LPTSTR buf = NULL;
 
-  PRINTER_DEFAULTS pd;
   pd.pDatatype = NULL;
   pd.pDevMode = NULL;
   pd.DesiredAccess = PRINTER_ALL_ACCESS;
@@ -734,7 +734,7 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
 {
   DWORD dwNeeded, err;
   BOOL rv;
-  TCHAR *buf = NULL;
+  LPTSTR buf = NULL;
 
   EXDLL_INIT ();
   buf = GlobalAlloc (GPTR, BUF_SIZE);
@@ -770,7 +770,7 @@ nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
 {
   DWORD err;
   BOOL rv;
-  TCHAR *buf = NULL;
+  LPTSTR buf = NULL;
 
   EXDLL_INIT ();
   buf = GlobalAlloc (GPTR, BUF_SIZE);
@@ -794,14 +794,14 @@ void DLLEXPORT
 nsRedMonConfigurePort (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t ** stacktop)
 {
-  RECONFIG config;
-  PRINTER_DEFAULTS pd;
   DWORD dwNeeded, dwStatus;
   DWORD err;
+  RECONFIG config;
+  PRINTER_DEFAULTS pd;
   BOOL rv;
 
   HANDLE hPrinter = NULL;
-  TCHAR *buf = NULL;
+  LPTSTR buf = NULL;
 
   EXDLL_INIT ();
   ZeroMemory (&config, sizeof (RECONFIG));

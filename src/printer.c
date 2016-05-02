@@ -482,7 +482,7 @@ nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
       goto cleanup;
     }
 
-  for (i = 0; i < dwPrintersNum - 1; i++)
+  for (i = dwPrintersNum - 1; i >= 0; i--)
     pushstring (lpbPrinterInfo[i].pPrinterName);
 
   pushint (dwPrintersNum);

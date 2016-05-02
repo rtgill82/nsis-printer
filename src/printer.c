@@ -1,8 +1,8 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sun 01 May 2016 04:57:41 PM PDT
+ * Modified: Sun 01 May 2016 05:04:16 PM PDT
  *
- * Copyright (C) 2014-2016  Robert Gill
+ * Copyright (C) 2014-2016  Robert Gill <locke@sdf.lonestar.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

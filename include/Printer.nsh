@@ -1,8 +1,8 @@
 ;
 ; Created:  Sat 30 Apr 2016 03:26:07 PM PDT
-; Modified: Sun 01 May 2016 05:04:26 PM PDT
+; Modified: Sun 01 May 2016 05:18:10 PM PDT
 ;
-; Copyright (C) 2016  Robert Gill <locke@sdf.lonestar.org>
+; Copyright (C) 2016  Robert Gill
 ;
 
 !ifndef PRINTER_NSH

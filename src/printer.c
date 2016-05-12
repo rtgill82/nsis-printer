@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Wed 11 May 2016 06:47:11 PM PDT
+ * Modified: Wed 11 May 2016 07:52:25 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -105,6 +105,111 @@ alloc_strcpy (LPTSTR str)
   _tcscpy (newstr, str);
 
   return newstr;
+}
+
+static INT_PTR CALLBACK
+printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+  unsigned int idx, len;
+  struct printer_select_dialog_opts_s *opts;
+  LPTSTR printerName;
+  static HWND prnCombo = NULL;
+
+  switch (msg)
+    {
+    case WM_INITDIALOG:
+      opts = (struct printer_select_dialog_opts_s *) lParam;
+      prnCombo = GetDlgItem (hwnd, IDC_PRINTER_COMBO);
+      SendMessage (prnCombo, CB_RESETCONTENT, 0, 0);
+      SendMessage (prnCombo, CB_ADDSTRING, 0,
+                   (LPARAM) _T ("None (Printing Disabled)"));
+
+      for (idx = 0; idx < opts->dwPrintersNum; idx++)
+        SendMessage (prnCombo, CB_ADDSTRING, 0,
+                     (LPARAM) opts->lpbPrinterInfo[idx].pPrinterName);
+
+      SendMessage (prnCombo, CB_SETCURSEL, 0, 0);
+      return TRUE;
+
+    case WM_COMMAND:
+      switch (LOWORD (wParam))
+        {
+        case IDOK:
+          idx = SendMessage (prnCombo, CB_GETCURSEL, 0, 0);
+          len = SendMessage (prnCombo, CB_GETLBTEXTLEN, idx, 0);
+          printerName =
+            (LPTSTR) GlobalAlloc (GPTR, (len + 1) * sizeof (TCHAR));
+
+          if (idx == 0)
+            {
+              lstrcpy (printerName, _T (""));
+            }
+          else
+            {
+              SendMessage (prnCombo, CB_GETLBTEXT, idx, (LPARAM) printerName);
+            }
+
+          prnCombo = NULL;
+          EndDialog (hwnd, (INT_PTR) printerName);
+          break;
+        }
+      break;
+
+    default:
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static void
+add_port (LPTSTR port_name, LPTSTR monitor_name, int string_size)
+{
+  DWORD dwNeeded, dwStatus;
+  DWORD err;
+  BOOL rv;
+
+  HANDLE hPrinter = NULL;
+  LPTSTR xcvbuf = NULL;
+
+  PRINTER_DEFAULTS pd;
+  pd.pDatatype = NULL;
+  pd.pDevMode = NULL;
+  pd.DesiredAccess = SERVER_ACCESS_ADMINISTER;
+
+  xcvbuf = GlobalAlloc (GPTR, BUF_SIZE);
+  if (monitor_name != NULL)
+    _sntprintf (xcvbuf, BUF_SIZE, _T (",XcvMonitor %s"), monitor_name);
+  else
+    _sntprintf (xcvbuf, BUF_SIZE, _T (",XcvPort %s"), port_name);
+
+  rv = OpenPrinter (xcvbuf, &hPrinter, &pd);
+  if (rv == FALSE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to open Xcv interface"), err);
+      pushint (-1);
+      goto cleanup;
+    }
+
+  rv =
+    XcvData (hPrinter, L"AddPort", (PBYTE) port_name,
+             ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0, &dwNeeded,
+             &dwStatus);
+
+  if (rv == FALSE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to add port"), err);
+      pushint (-1);
+      goto cleanup;
+    }
+
+  pushint (0);
+
+cleanup:
+  ClosePrinter (hPrinter);
+  GlobalFree (xcvbuf);
 }
 
 /* Parse dependent files in driver ini file. */
@@ -372,111 +477,6 @@ cleanup:
   return err;
 }
 
-static void
-add_port (LPTSTR port_name, LPTSTR monitor_name, int string_size)
-{
-  DWORD dwNeeded, dwStatus;
-  DWORD err;
-  BOOL rv;
-
-  HANDLE hPrinter = NULL;
-  LPTSTR xcvbuf = NULL;
-
-  PRINTER_DEFAULTS pd;
-  pd.pDatatype = NULL;
-  pd.pDevMode = NULL;
-  pd.DesiredAccess = SERVER_ACCESS_ADMINISTER;
-
-  xcvbuf = GlobalAlloc (GPTR, BUF_SIZE);
-  if (monitor_name != NULL)
-    _sntprintf (xcvbuf, BUF_SIZE, _T (",XcvMonitor %s"), monitor_name);
-  else
-    _sntprintf (xcvbuf, BUF_SIZE, _T (",XcvPort %s"), port_name);
-
-  rv = OpenPrinter (xcvbuf, &hPrinter, &pd);
-  if (rv == FALSE)
-    {
-      err = GetLastError ();
-      pusherrormessage (_T ("Unable to open Xcv interface"), err);
-      pushint (-1);
-      goto cleanup;
-    }
-
-  rv =
-    XcvData (hPrinter, L"AddPort", (PBYTE) port_name,
-             ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0, &dwNeeded,
-             &dwStatus);
-
-  if (rv == FALSE)
-    {
-      err = GetLastError ();
-      pusherrormessage (_T ("Unable to add port"), err);
-      pushint (-1);
-      goto cleanup;
-    }
-
-  pushint (0);
-
-cleanup:
-  ClosePrinter (hPrinter);
-  GlobalFree (xcvbuf);
-}
-
-static INT_PTR CALLBACK
-printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-  unsigned int idx, len;
-  struct printer_select_dialog_opts_s *opts;
-  LPTSTR printerName;
-  static HWND prnCombo = NULL;
-
-  switch (msg)
-    {
-    case WM_INITDIALOG:
-      opts = (struct printer_select_dialog_opts_s *) lParam;
-      prnCombo = GetDlgItem (hwnd, IDC_PRINTER_COMBO);
-      SendMessage (prnCombo, CB_RESETCONTENT, 0, 0);
-      SendMessage (prnCombo, CB_ADDSTRING, 0,
-                   (LPARAM) _T ("None (Printing Disabled)"));
-
-      for (idx = 0; idx < opts->dwPrintersNum; idx++)
-        SendMessage (prnCombo, CB_ADDSTRING, 0,
-                     (LPARAM) opts->lpbPrinterInfo[idx].pPrinterName);
-
-      SendMessage (prnCombo, CB_SETCURSEL, 0, 0);
-      return TRUE;
-
-    case WM_COMMAND:
-      switch (LOWORD (wParam))
-        {
-        case IDOK:
-          idx = SendMessage (prnCombo, CB_GETCURSEL, 0, 0);
-          len = SendMessage (prnCombo, CB_GETLBTEXTLEN, idx, 0);
-          printerName =
-            (LPTSTR) GlobalAlloc (GPTR, (len + 1) * sizeof (TCHAR));
-
-          if (idx == 0)
-            {
-              lstrcpy (printerName, _T (""));
-            }
-          else
-            {
-              SendMessage (prnCombo, CB_GETLBTEXT, idx, (LPARAM) printerName);
-            }
-
-          prnCombo = NULL;
-          EndDialog (hwnd, (INT_PTR) printerName);
-          break;
-        }
-      break;
-
-    default:
-      return FALSE;
-    }
-
-  return TRUE;
-}
-
 void DLLEXPORT
 nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t ** stacktop)
@@ -542,137 +542,6 @@ nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
 
 cleanup:
   GlobalFree (lpbPrinterInfo);
-}
-
-void DLLEXPORT
-nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
-             stack_t ** stacktop)
-{
-  int i;
-  DWORD dwNeeded, dwPortsNum;
-  DWORD err;
-  BOOL rv;
-
-  PORT_INFO_1 *portinfo = NULL;
-
-  EXDLL_INIT ();
-  EnumPorts (NULL, 1, NULL, 0, &dwNeeded, &dwPortsNum);
-  portinfo = GlobalAlloc (GPTR, dwNeeded);
-
-  rv =
-    EnumPorts (NULL, 1, (PBYTE) portinfo, dwNeeded, &dwNeeded, &dwPortsNum);
-
-  if (rv != TRUE)
-    {
-      err = GetLastError ();
-      pusherrormessage (_T ("Unable to enumerate ports"), err);
-      pushint (-1);
-      goto cleanup;
-    }
-
-  for (i = dwPortsNum - 1; i >= 0; i--)
-    pushstring (portinfo[i].pName);
-
-  pushint (dwPortsNum);
-
-cleanup:
-  GlobalFree (portinfo);
-}
-
-void DLLEXPORT
-nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
-           stack_t ** stacktop)
-{
-  LPTSTR port_name = NULL;
-
-  EXDLL_INIT ();
-  port_name = GlobalAlloc (GPTR, BUF_SIZE);
-
-  popstring (port_name); /* Pop port name */
-  add_port (port_name, NULL, string_size);
-  GlobalFree (port_name);
-}
-
-void DLLEXPORT
-nsAddPortMonitor (HWND hwndParent, int string_size, LPTSTR variables,
-                  stack_t ** stacktop)
-{
-  LPTSTR port_name = NULL, monitor_name = NULL;
-
-  EXDLL_INIT ();
-  port_name = GlobalAlloc (GPTR, BUF_SIZE);
-  monitor_name = GlobalAlloc (GPTR, BUF_SIZE);
-
-  popstring (monitor_name); /* Pop print monitor */
-  popstring (port_name);    /* Pop port name */
-  add_port (port_name, monitor_name, string_size);
-  GlobalFree (port_name);
-  GlobalFree (monitor_name);
-}
-
-void DLLEXPORT
-nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
-                    stack_t ** stacktop)
-{
-  DWORD arch;
-  DWORD err;
-  DRIVER_INFO di;
-  BOOL rv;
-
-  LPTSTR driverdir = NULL, inifile = NULL;
-  LPTSTR buf1 = NULL, buf2 = NULL;
-
-  EXDLL_INIT ();
-  ZeroMemory (&di, sizeof (DRIVER_INFO));
-  buf1 = GlobalAlloc (GPTR, BUF_SIZE);
-  buf2 = GlobalAlloc (GPTR, BUF_SIZE);
-
-  /* System Architecture (x86 or x64) */
-  popstring (buf1);
-  if (!lstrcmp (buf1, _T ("x64")))
-    {
-      arch = ARCH_X64;
-    }
-  else
-    {
-      arch = ARCH_X86;
-    }
-
-  /* Driver Directory */
-  popstring (buf1);
-  _sntprintf (buf2, BUF_SIZE, _T ("%s\\%s"), buf1,
-              (arch == ARCH_X64 ? _T ("x64") : _T ("w32x86")));
-  driverdir = alloc_strcpy (buf2);
-
-  _sntprintf (buf2, BUF_SIZE, _T ("%s\\DRIVER.INI"), driverdir);
-  inifile = alloc_strcpy (buf2);
-  read_driverini (inifile, &di);
-  err = copy_driverfiles (driverdir, &di);
-  if (err)
-    {
-      pusherrormessage (_T ("Unable to copy driver files"), err);
-      pushint (-1);
-      goto cleanup;
-    }
-
-  rv = AddPrinterDriver (NULL, DRIVER_INFO_LEVEL, (LPBYTE) & di);
-  if (rv == FALSE)
-    {
-      err = GetLastError ();
-      pusherrormessage (_T ("Unable to add printer driver"), err);
-      pushint (-1);
-      goto cleanup;
-    }
-
-  delete_driverfiles (&di);
-  pushint (0);
-
-cleanup:
-  cleanup_driverinfo (&di);
-  GlobalFree (buf1);
-  GlobalFree (buf2);
-  GlobalFree (driverdir);
-  GlobalFree (inifile);
 }
 
 void DLLEXPORT
@@ -772,6 +641,72 @@ cleanup:
 }
 
 void DLLEXPORT
+nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
+             stack_t ** stacktop)
+{
+  int i;
+  DWORD dwNeeded, dwPortsNum;
+  DWORD err;
+  BOOL rv;
+
+  PORT_INFO_1 *portinfo = NULL;
+
+  EXDLL_INIT ();
+  EnumPorts (NULL, 1, NULL, 0, &dwNeeded, &dwPortsNum);
+  portinfo = GlobalAlloc (GPTR, dwNeeded);
+
+  rv =
+    EnumPorts (NULL, 1, (PBYTE) portinfo, dwNeeded, &dwNeeded, &dwPortsNum);
+
+  if (rv != TRUE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to enumerate ports"), err);
+      pushint (-1);
+      goto cleanup;
+    }
+
+  for (i = dwPortsNum - 1; i >= 0; i--)
+    pushstring (portinfo[i].pName);
+
+  pushint (dwPortsNum);
+
+cleanup:
+  GlobalFree (portinfo);
+}
+
+void DLLEXPORT
+nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
+           stack_t ** stacktop)
+{
+  LPTSTR port_name = NULL;
+
+  EXDLL_INIT ();
+  port_name = GlobalAlloc (GPTR, BUF_SIZE);
+
+  popstring (port_name); /* Pop port name */
+  add_port (port_name, NULL, string_size);
+  GlobalFree (port_name);
+}
+
+void DLLEXPORT
+nsAddPortMonitor (HWND hwndParent, int string_size, LPTSTR variables,
+                  stack_t ** stacktop)
+{
+  LPTSTR port_name = NULL, monitor_name = NULL;
+
+  EXDLL_INIT ();
+  port_name = GlobalAlloc (GPTR, BUF_SIZE);
+  monitor_name = GlobalAlloc (GPTR, BUF_SIZE);
+
+  popstring (monitor_name); /* Pop print monitor */
+  popstring (port_name);    /* Pop port name */
+  add_port (port_name, monitor_name, string_size);
+  GlobalFree (port_name);
+  GlobalFree (monitor_name);
+}
+
+void DLLEXPORT
 nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
                      stack_t ** stacktop)
 {
@@ -831,6 +766,71 @@ nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
 
 cleanup:
   GlobalFree (buf);
+}
+
+void DLLEXPORT
+nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
+                    stack_t ** stacktop)
+{
+  DWORD arch;
+  DWORD err;
+  DRIVER_INFO di;
+  BOOL rv;
+
+  LPTSTR driverdir = NULL, inifile = NULL;
+  LPTSTR buf1 = NULL, buf2 = NULL;
+
+  EXDLL_INIT ();
+  ZeroMemory (&di, sizeof (DRIVER_INFO));
+  buf1 = GlobalAlloc (GPTR, BUF_SIZE);
+  buf2 = GlobalAlloc (GPTR, BUF_SIZE);
+
+  /* System Architecture (x86 or x64) */
+  popstring (buf1);
+  if (!lstrcmp (buf1, _T ("x64")))
+    {
+      arch = ARCH_X64;
+    }
+  else
+    {
+      arch = ARCH_X86;
+    }
+
+  /* Driver Directory */
+  popstring (buf1);
+  _sntprintf (buf2, BUF_SIZE, _T ("%s\\%s"), buf1,
+              (arch == ARCH_X64 ? _T ("x64") : _T ("w32x86")));
+  driverdir = alloc_strcpy (buf2);
+
+  _sntprintf (buf2, BUF_SIZE, _T ("%s\\DRIVER.INI"), driverdir);
+  inifile = alloc_strcpy (buf2);
+  read_driverini (inifile, &di);
+  err = copy_driverfiles (driverdir, &di);
+  if (err)
+    {
+      pusherrormessage (_T ("Unable to copy driver files"), err);
+      pushint (-1);
+      goto cleanup;
+    }
+
+  rv = AddPrinterDriver (NULL, DRIVER_INFO_LEVEL, (LPBYTE) & di);
+  if (rv == FALSE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to add printer driver"), err);
+      pushint (-1);
+      goto cleanup;
+    }
+
+  delete_driverfiles (&di);
+  pushint (0);
+
+cleanup:
+  cleanup_driverinfo (&di);
+  GlobalFree (buf1);
+  GlobalFree (buf2);
+  GlobalFree (driverdir);
+  GlobalFree (inifile);
 }
 
 void DLLEXPORT

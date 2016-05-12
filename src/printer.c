@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Wed 11 May 2016 08:52:05 PM PDT
+ * Modified: Thu 12 May 2016 01:03:16 AM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -898,13 +898,10 @@ void DLLEXPORT
 nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t ** stacktop)
 {
-  DWORD dwNeeded, dwStatus;
-  DWORD err;
-  RECONFIG config;
-  PRINTER_DEFAULTS pd;
+  DWORD dwNeeded, dwStatus, err;
   BOOL rv;
-
-  HANDLE hPrinter = NULL;
+  RECONFIG config;
+  HANDLE iface = NULL;
   LPTSTR buf = NULL;
 
   EXDLL_INIT ();
@@ -917,33 +914,24 @@ nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
   config.dwDelay = DEFAULT_DELAY;
   config.dwLogFileDebug = FALSE;
 
-  pd.pDatatype = NULL;
-  pd.pDevMode = NULL;
-  pd.DesiredAccess = SERVER_ACCESS_ADMINISTER;
-
   buf = GlobalAlloc (GPTR, BUF_SIZE);
 
   /* Port Name */
   popstring (buf);
   lstrcpy (config.szPortName, buf);
 
+  if ((iface = xcv_open (buf, _T ("Redirected Port"), string_size)) == NULL)
+    goto cleanup;
+
   /* Command */
   popstring (buf);
   lstrcpy (config.szCommand, buf);
   lstrcpy (config.szDescription, _T ("Redirected Port"));
 
-  rv = OpenPrinter (_T (",XcvMonitor Redirected Port"), &hPrinter, &pd);
-  if (rv == FALSE)
-    {
-      err = GetLastError ();
-      pusherrormessage (_T ("Unable to open XcvMonitor"), err);
-      pushint (-1);
-      goto cleanup;
-    }
-
   rv =
-    XcvData (hPrinter, L"SetConfig", (PBYTE) (&config), sizeof (RECONFIG),
+    XcvData (iface, L"SetConfig", (PBYTE) (&config), sizeof (RECONFIG),
              NULL, 0, &dwNeeded, &dwStatus);
+
   if (rv == FALSE)
     {
       err = GetLastError ();
@@ -955,7 +943,7 @@ nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
   pushint (0);
 
 cleanup:
-  ClosePrinter (hPrinter);
+  ClosePrinter (iface);
   GlobalFree (buf);
 }
 

@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sun 01 May 2016 05:18:22 PM PDT
+ * Modified: Wed 11 May 2016 06:47:11 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -45,7 +45,10 @@ extern "C" {
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define BUF_SIZE (string_size * sizeof(TCHAR))
 
-/* Defined and used by Redmon 1.9. */
+/*
+ * Defined and used by Redmon 1.9.
+ * Copyright (C) Ghostgum Software Pty Ltd.
+ */
 struct reconfig_s
 {
   DWORD dwSize;                 /* sizeof this structure */
@@ -369,7 +372,57 @@ cleanup:
   return err;
 }
 
-INT_PTR CALLBACK
+static void
+add_port (LPTSTR port_name, LPTSTR monitor_name, int string_size)
+{
+  DWORD dwNeeded, dwStatus;
+  DWORD err;
+  BOOL rv;
+
+  HANDLE hPrinter = NULL;
+  LPTSTR xcvbuf = NULL;
+
+  PRINTER_DEFAULTS pd;
+  pd.pDatatype = NULL;
+  pd.pDevMode = NULL;
+  pd.DesiredAccess = SERVER_ACCESS_ADMINISTER;
+
+  xcvbuf = GlobalAlloc (GPTR, BUF_SIZE);
+  if (monitor_name != NULL)
+    _sntprintf (xcvbuf, BUF_SIZE, _T (",XcvMonitor %s"), monitor_name);
+  else
+    _sntprintf (xcvbuf, BUF_SIZE, _T (",XcvPort %s"), port_name);
+
+  rv = OpenPrinter (xcvbuf, &hPrinter, &pd);
+  if (rv == FALSE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to open Xcv interface"), err);
+      pushint (-1);
+      goto cleanup;
+    }
+
+  rv =
+    XcvData (hPrinter, L"AddPort", (PBYTE) port_name,
+             ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0, &dwNeeded,
+             &dwStatus);
+
+  if (rv == FALSE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to add port"), err);
+      pushint (-1);
+      goto cleanup;
+    }
+
+  pushint (0);
+
+cleanup:
+  ClosePrinter (hPrinter);
+  GlobalFree (xcvbuf);
+}
+
+static INT_PTR CALLBACK
 printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   unsigned int idx, len;
@@ -530,56 +583,31 @@ void DLLEXPORT
 nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
            stack_t ** stacktop)
 {
-  DWORD dwNeeded, dwStatus;
-  DWORD err;
-  BOOL rv;
-
-  HANDLE hPrinter = NULL;
-  LPTSTR buf = NULL, monbuf = NULL;
-
-  PRINTER_DEFAULTS pd;
-  pd.pDatatype = NULL;
-  pd.pDevMode = NULL;
-  pd.DesiredAccess = SERVER_ACCESS_ADMINISTER;
+  LPTSTR port_name = NULL;
 
   EXDLL_INIT ();
-  buf = GlobalAlloc (GPTR, BUF_SIZE);
-  monbuf = GlobalAlloc (GPTR, BUF_SIZE);
+  port_name = GlobalAlloc (GPTR, BUF_SIZE);
 
-  /* Pop print monitor */
-  popstring (buf);
-  _sntprintf (monbuf, BUF_SIZE, _T (",XcvMonitor %s"), buf);
+  popstring (port_name); /* Pop port name */
+  add_port (port_name, NULL, string_size);
+  GlobalFree (port_name);
+}
 
-  rv = OpenPrinter (monbuf, &hPrinter, &pd);
-  if (rv == FALSE)
-    {
-      err = GetLastError ();
-      pusherrormessage (_T ("Unable to open XcvMonitor"), err);
-      pushint (-1);
-      goto cleanup;
-    }
+void DLLEXPORT
+nsAddPortMonitor (HWND hwndParent, int string_size, LPTSTR variables,
+                  stack_t ** stacktop)
+{
+  LPTSTR port_name = NULL, monitor_name = NULL;
 
-  /* Pop port name */
-  popstring (buf);
-  rv =
-    XcvData (hPrinter, L"AddPort", (PBYTE) buf,
-             ((lstrlen (buf) + 1) * sizeof (TCHAR)), NULL, 0, &dwNeeded,
-             &dwStatus);
+  EXDLL_INIT ();
+  port_name = GlobalAlloc (GPTR, BUF_SIZE);
+  monitor_name = GlobalAlloc (GPTR, BUF_SIZE);
 
-  if (rv == FALSE)
-    {
-      err = GetLastError ();
-      pusherrormessage (_T ("Unable to add port"), err);
-      pushint (-1);
-      goto cleanup;
-    }
-
-  pushint (0);
-
-cleanup:
-  ClosePrinter (hPrinter);
-  GlobalFree (buf);
-  GlobalFree (monbuf);
+  popstring (monitor_name); /* Pop print monitor */
+  popstring (port_name);    /* Pop port name */
+  add_port (port_name, monitor_name, string_size);
+  GlobalFree (port_name);
+  GlobalFree (monitor_name);
 }
 
 void DLLEXPORT

@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Wed 11 May 2016 07:52:25 PM PDT
+ * Modified: Wed 11 May 2016 08:52:05 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -162,14 +162,11 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   return TRUE;
 }
 
-static void
-add_port (LPTSTR port_name, LPTSTR monitor_name, int string_size)
+static HANDLE
+xcv_open (LPTSTR port_name, LPTSTR monitor_name, int string_size)
 {
-  DWORD dwNeeded, dwStatus;
   DWORD err;
-  BOOL rv;
-
-  HANDLE hPrinter = NULL;
+  HANDLE iface = NULL;
   LPTSTR xcvbuf = NULL;
 
   PRINTER_DEFAULTS pd;
@@ -183,17 +180,24 @@ add_port (LPTSTR port_name, LPTSTR monitor_name, int string_size)
   else
     _sntprintf (xcvbuf, BUF_SIZE, _T (",XcvPort %s"), port_name);
 
-  rv = OpenPrinter (xcvbuf, &hPrinter, &pd);
-  if (rv == FALSE)
+  if (OpenPrinter (xcvbuf, &iface, &pd) == FALSE)
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open Xcv interface"), err);
       pushint (-1);
-      goto cleanup;
     }
 
+  GlobalFree (xcvbuf);
+  return iface;
+}
+
+static DWORD
+xcv_add_port (HANDLE iface, LPTSTR port_name)
+{
+  DWORD dwNeeded, dwStatus, rv, err;
+
   rv =
-    XcvData (hPrinter, L"AddPort", (PBYTE) port_name,
+    XcvData (iface, L"AddPort", (PBYTE) port_name,
              ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0, &dwNeeded,
              &dwStatus);
 
@@ -202,14 +206,29 @@ add_port (LPTSTR port_name, LPTSTR monitor_name, int string_size)
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add port"), err);
       pushint (-1);
-      goto cleanup;
     }
 
-  pushint (0);
+  return rv;
+}
 
-cleanup:
-  ClosePrinter (hPrinter);
-  GlobalFree (xcvbuf);
+static DWORD
+xcv_delete_port (HANDLE iface, LPTSTR port_name)
+{
+  DWORD dwNeeded, dwStatus, rv, err;
+
+  rv =
+    XcvData (iface, L"DeletePort", (PBYTE) port_name,
+             ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0, &dwNeeded,
+             &dwStatus);
+
+  if (rv == FALSE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to delete port"), err);
+      pushint (-1);
+    }
+
+  return rv;
 }
 
 /* Parse dependent files in driver ini file. */
@@ -679,13 +698,23 @@ void DLLEXPORT
 nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
            stack_t ** stacktop)
 {
+  HANDLE iface = NULL;
   LPTSTR port_name = NULL;
 
   EXDLL_INIT ();
   port_name = GlobalAlloc (GPTR, BUF_SIZE);
 
-  popstring (port_name); /* Pop port name */
-  add_port (port_name, NULL, string_size);
+  popstring (port_name);        /* Pop port name */
+  if ((iface = xcv_open (port_name, NULL, string_size)) == NULL)
+    goto cleanup;
+
+  if (xcv_add_port (iface, port_name) == FALSE)
+    goto cleanup;
+
+  pushint (0);
+
+cleanup:
+  ClosePrinter (iface);
   GlobalFree (port_name);
 }
 
@@ -693,17 +722,49 @@ void DLLEXPORT
 nsAddPortMonitor (HWND hwndParent, int string_size, LPTSTR variables,
                   stack_t ** stacktop)
 {
+  HANDLE iface = NULL;
   LPTSTR port_name = NULL, monitor_name = NULL;
 
   EXDLL_INIT ();
   port_name = GlobalAlloc (GPTR, BUF_SIZE);
   monitor_name = GlobalAlloc (GPTR, BUF_SIZE);
 
-  popstring (monitor_name); /* Pop print monitor */
-  popstring (port_name);    /* Pop port name */
-  add_port (port_name, monitor_name, string_size);
+  popstring (monitor_name);     /* Pop print monitor */
+  popstring (port_name);        /* Pop port name */
+  if ((iface = xcv_open (port_name, monitor_name, string_size)) == NULL)
+    goto cleanup;
+
+  if (xcv_add_port (iface, port_name) == FALSE)
+    goto cleanup;
+
+cleanup:
+  ClosePrinter (iface);
   GlobalFree (port_name);
   GlobalFree (monitor_name);
+}
+
+void DLLEXPORT
+nsDeletePort (HWND hwndParent, int string_size, LPTSTR variables,
+              stack_t ** stacktop)
+{
+  HANDLE iface = NULL;
+  LPTSTR port_name = NULL;
+
+  EXDLL_INIT ();
+  port_name = GlobalAlloc (GPTR, BUF_SIZE);
+
+  popstring (port_name);        /* Pop port name */
+  if ((iface = xcv_open (port_name, NULL, string_size)) == NULL)
+    goto cleanup;
+
+  if (xcv_delete_port (iface, port_name) == FALSE)
+    goto cleanup;
+
+  pushint (0);
+
+cleanup:
+  ClosePrinter (iface);
+  GlobalFree (port_name);
 }
 
 void DLLEXPORT

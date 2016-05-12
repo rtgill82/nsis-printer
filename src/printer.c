@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Thu 12 May 2016 01:03:16 AM PDT
+ * Modified: Thu 12 May 2016 01:27:34 AM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -205,26 +205,6 @@ xcv_add_port (HANDLE iface, LPTSTR port_name)
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add port"), err);
-      pushint (-1);
-    }
-
-  return rv;
-}
-
-static DWORD
-xcv_delete_port (HANDLE iface, LPTSTR port_name)
-{
-  DWORD dwNeeded, dwStatus, rv, err;
-
-  rv =
-    XcvData (iface, L"DeletePort", (PBYTE) port_name,
-             ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0, &dwNeeded,
-             &dwStatus);
-
-  if (rv == FALSE)
-    {
-      err = GetLastError ();
-      pusherrormessage (_T ("Unable to delete port"), err);
       pushint (-1);
     }
 
@@ -747,6 +727,8 @@ void DLLEXPORT
 nsDeletePort (HWND hwndParent, int string_size, LPTSTR variables,
               stack_t ** stacktop)
 {
+  DWORD dwNeeded, dwStatus, rv, err;
+
   HANDLE iface = NULL;
   LPTSTR port_name = NULL;
 
@@ -757,8 +739,18 @@ nsDeletePort (HWND hwndParent, int string_size, LPTSTR variables,
   if ((iface = xcv_open (port_name, NULL, string_size)) == NULL)
     goto cleanup;
 
-  if (xcv_delete_port (iface, port_name) == FALSE)
-    goto cleanup;
+  rv =
+    XcvData (iface, L"DeletePort", (PBYTE) port_name,
+             ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0, &dwNeeded,
+             &dwStatus);
+
+  if (rv == FALSE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to delete port"), err);
+      pushint (-1);
+      goto cleanup;
+    }
 
   pushint (0);
 

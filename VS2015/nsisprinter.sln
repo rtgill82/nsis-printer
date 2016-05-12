@@ -7,12 +7,18 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nsisprinter", "nsisprinter.
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug (UNICODE)|x86 = Debug (UNICODE)|x86
 		Debug|x86 = Debug|x86
+		Release (UNICODE)|x86 = Release (UNICODE)|x86
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9B425C1A-19A6-4F1F-8F0C-D789FBBE6CC8}.Debug (UNICODE)|x86.ActiveCfg = Debug (UNICODE)|Win32
+		{9B425C1A-19A6-4F1F-8F0C-D789FBBE6CC8}.Debug (UNICODE)|x86.Build.0 = Debug (UNICODE)|Win32
 		{9B425C1A-19A6-4F1F-8F0C-D789FBBE6CC8}.Debug|x86.ActiveCfg = Debug|Win32
 		{9B425C1A-19A6-4F1F-8F0C-D789FBBE6CC8}.Debug|x86.Build.0 = Debug|Win32
+		{9B425C1A-19A6-4F1F-8F0C-D789FBBE6CC8}.Release (UNICODE)|x86.ActiveCfg = Release (UNICODE)|Win32
+		{9B425C1A-19A6-4F1F-8F0C-D789FBBE6CC8}.Release (UNICODE)|x86.Build.0 = Release (UNICODE)|Win32
 		{9B425C1A-19A6-4F1F-8F0C-D789FBBE6CC8}.Release|x86.ActiveCfg = Release|Win32
 		{9B425C1A-19A6-4F1F-8F0C-D789FBBE6CC8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection

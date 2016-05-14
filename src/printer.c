@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Thu 12 May 2016 01:27:34 AM PDT
+ * Modified: Sat 14 May 2016 03:19:28 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -105,6 +105,21 @@ alloc_strcpy (LPTSTR str)
   _tcscpy (newstr, str);
 
   return newstr;
+}
+
+static LPTSTR
+dircpy (LPTSTR dest, LPCTSTR path)
+{
+  int i, dirlen = 0;
+
+  for (i = 0; path[i] != '\0'; i++)
+    if (path[i] == '\\')
+      dirlen = i;
+
+  _tcsncpy (dest, path, dirlen);
+  dest[dirlen] = '\0';
+
+  return dest;
 }
 
 static INT_PTR CALLBACK
@@ -825,38 +840,19 @@ void DLLEXPORT
 nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
                     stack_t ** stacktop)
 {
-  DWORD arch;
   DWORD err;
   DRIVER_INFO di;
   BOOL rv;
-
-  LPTSTR driverdir = NULL, inifile = NULL;
-  LPTSTR buf1 = NULL, buf2 = NULL;
+  LPTSTR inifile = NULL, driverdir = NULL;
 
   EXDLL_INIT ();
   ZeroMemory (&di, sizeof (DRIVER_INFO));
-  buf1 = GlobalAlloc (GPTR, BUF_SIZE);
-  buf2 = GlobalAlloc (GPTR, BUF_SIZE);
+  inifile = GlobalAlloc (GPTR, BUF_SIZE);
+  driverdir = GlobalAlloc (GPTR, BUF_SIZE);
 
-  /* System Architecture (x86 or x64) */
-  popstring (buf1);
-  if (!lstrcmp (buf1, _T ("x64")))
-    {
-      arch = ARCH_X64;
-    }
-  else
-    {
-      arch = ARCH_X86;
-    }
-
-  /* Driver Directory */
-  popstring (buf1);
-  _sntprintf (buf2, BUF_SIZE, _T ("%s\\%s"), buf1,
-              (arch == ARCH_X64 ? _T ("x64") : _T ("w32x86")));
-  driverdir = alloc_strcpy (buf2);
-
-  _sntprintf (buf2, BUF_SIZE, _T ("%s\\DRIVER.INI"), driverdir);
-  inifile = alloc_strcpy (buf2);
+  /* Driver INI File */
+  popstring (inifile);
+  dircpy (driverdir, inifile);
   read_driverini (inifile, &di);
   err = copy_driverfiles (driverdir, &di);
   if (err)
@@ -880,10 +876,8 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
 
 cleanup:
   cleanup_driverinfo (&di);
-  GlobalFree (buf1);
-  GlobalFree (buf2);
-  GlobalFree (driverdir);
   GlobalFree (inifile);
+  GlobalFree (driverdir);
 }
 
 void DLLEXPORT

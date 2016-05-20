@@ -1,9 +1,14 @@
+ifeq ($(DEBUG),true)
+CFLAGS  = -march=i686 -g3 -Og -Wall
+LDFLAGS =
+else
 CFLAGS  = -march=i686 -fomit-frame-pointer -ftracer -Os -Wall
-HOST    = i686-w64-mingw32
 LDFLAGS = -s
+endif
 
+HOST   = i686-w64-mingw32
 CCPATH = /usr/bin
-CC  = $(CCPATH)/$(HOST)-gcc
+CC = $(CCPATH)/$(HOST)-gcc
 RC = $(CCPATH)/$(HOST)-windres
 
 CFLAGS += -fno-strict-aliasing -DNSISCALL="__attribute__((__stdcall__))"

@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Thu 19 May 2016 07:08:51 PM PDT
+ * Modified: Fri 20 May 2016 09:02:20 AM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -82,6 +82,7 @@ static TCHAR errbuf[ERRBUF_SIZE];
 static void NSISCALL
 pusherrormessage (LPCTSTR msg, DWORD err)
 {
+  TCHAR *p;
   int len;
   lstrcpy (errbuf, msg);
 
@@ -92,6 +93,10 @@ pusherrormessage (LPCTSTR msg, DWORD err)
       FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM, NULL, err, 0, errbuf + len,
                      (ERRBUF_SIZE - len) * sizeof (TCHAR), NULL);
     }
+
+  p = errbuf + lstrlen(errbuf) - 1;
+  while (p != errbuf && isspace(*p)) p--;
+  if (p != errbuf) *(p + 1) = '\0';
 
   pushstring (errbuf);
 }

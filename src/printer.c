@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Fri 20 May 2016 09:02:20 AM PDT
+ * Modified: Fri 20 May 2016 09:08:52 AM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -38,9 +38,6 @@ extern "C" {
 
 #define LPPRINTER_INFO_LEVEL 4
 #define LPPRINTER_INFO LPPRINTER_INFO_4
-
-#define ARCH_X86 0x0
-#define ARCH_X64 0x1
 
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define BUF_SIZE (string_size * sizeof(TCHAR))

@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sat 14 May 2016 03:19:28 PM PDT
+ * Modified: Thu 19 May 2016 07:08:51 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -183,11 +183,7 @@ xcv_open (LPTSTR port_name, LPTSTR monitor_name, int string_size)
   DWORD err;
   HANDLE iface = NULL;
   LPTSTR xcvbuf = NULL;
-
-  PRINTER_DEFAULTS pd;
-  pd.pDatatype = NULL;
-  pd.pDevMode = NULL;
-  pd.DesiredAccess = SERVER_ACCESS_ADMINISTER;
+  PRINTER_DEFAULTS pd = { NULL, NULL, SERVER_ACCESS_ADMINISTER };
 
   xcvbuf = GlobalAlloc (GPTR, BUF_SIZE);
   if (monitor_name != NULL)
@@ -614,15 +610,11 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
                  stack_t ** stacktop)
 {
   DWORD err;
-  PRINTER_DEFAULTS pd;
   BOOL rv;
 
   HANDLE hPrinter = NULL;
   LPTSTR buf = NULL;
-
-  pd.pDatatype = NULL;
-  pd.pDevMode = NULL;
-  pd.DesiredAccess = PRINTER_ALL_ACCESS;
+  PRINTER_DEFAULTS pd = { NULL, NULL, PRINTER_ALL_ACCESS };
 
   EXDLL_INIT ();
   buf = GlobalAlloc (GPTR, BUF_SIZE);

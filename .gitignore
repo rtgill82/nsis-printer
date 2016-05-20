@@ -5,6 +5,7 @@ nsisprinter.sdf
 nsisprinter.v12.suo
 nsisprinter.VC.db
 nsisprinter.VC.VC.opendb
+nsisprinter.vcxproj.user
 src/Printer.dll
 VS2015/Debug*
 VS2015/Release*

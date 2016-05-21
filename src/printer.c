@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Fri 20 May 2016 09:08:52 AM PDT
+ * Modified: Fri 20 May 2016 07:20:26 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -725,6 +725,8 @@ nsAddPortMonitor (HWND hwndParent, int string_size, LPTSTR variables,
 
   if (xcv_add_port (iface, port_name) == FALSE)
     goto cleanup;
+
+  pushint (0);
 
 cleanup:
   ClosePrinter (iface);

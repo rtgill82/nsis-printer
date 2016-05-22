@@ -1,17 +1,17 @@
+CFLAGS  = -march=i686 -fomit-frame-pointer -ftracer -Os -Wall
+LDFLAGS = -s
+HOST    = i686-w64-mingw32
+CCPATH  = /usr/bin
+
 ifeq ($(DEBUG),true)
 CFLAGS  = -march=i686 -g3 -Og -Wall
 LDFLAGS =
-else
-CFLAGS  = -march=i686 -fomit-frame-pointer -ftracer -Os -Wall
-LDFLAGS = -s
 endif
 
-HOST   = i686-w64-mingw32
-CCPATH = /usr/bin
 CC = $(CCPATH)/$(HOST)-gcc
 RC = $(CCPATH)/$(HOST)-windres
 
-CFLAGS += -fno-strict-aliasing -DNSISCALL="__attribute__((__stdcall__))"
+CFLAGS += -DNSISCALL="__attribute__((__stdcall__))"
 LDFLAGS += -mwindows -Wl,--kill-at -static-libgcc -shared
 
 UNICODE := true

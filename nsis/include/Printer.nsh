@@ -1,6 +1,6 @@
 ;
 ; Created:  Sat 30 Apr 2016 03:26:07 PM PDT
-; Modified: Sat 14 May 2016 01:05:20 PM PDT
+; Modified: Tue 07 Jun 2016 10:47:11 PM PDT
 ;
 ; Copyright (C) 2016  Robert Gill
 ;
@@ -48,14 +48,6 @@ Printer::nsAddPort
 Pop "${_RET}"
 !macroend
 !define AddPort "!insertmacro _AddPort"
-
-!macro _AddPortMonitor _PORT _MONITOR _RET
-Push "${_PORT}"
-Push "${_MONITOR}"
-Printer::nsAddPortMonitor
-Pop "${_RET}"
-!macroend
-!define AddPortMonitor "!insertmacro _AddPortMonitor"
 
 !macro _DeletePort _NAME _RET
 Push "${_NAME}"

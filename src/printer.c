@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Fri 20 May 2016 07:20:26 PM PDT
+ * Modified: Tue 07 Jun 2016 10:03:01 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -177,51 +177,6 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
 
   return TRUE;
-}
-
-static HANDLE
-xcv_open (LPTSTR port_name, LPTSTR monitor_name, int string_size)
-{
-  DWORD err;
-  HANDLE iface = NULL;
-  LPTSTR xcvbuf = NULL;
-  PRINTER_DEFAULTS pd = { NULL, NULL, SERVER_ACCESS_ADMINISTER };
-
-  xcvbuf = GlobalAlloc (GPTR, BUF_SIZE);
-  if (monitor_name != NULL)
-    _sntprintf (xcvbuf, BUF_SIZE, _T (",XcvMonitor %s"), monitor_name);
-  else
-    _sntprintf (xcvbuf, BUF_SIZE, _T (",XcvPort %s"), port_name);
-
-  if (OpenPrinter (xcvbuf, &iface, &pd) == FALSE)
-    {
-      err = GetLastError ();
-      pusherrormessage (_T ("Unable to open Xcv interface"), err);
-      pushint (-1);
-    }
-
-  GlobalFree (xcvbuf);
-  return iface;
-}
-
-static DWORD
-xcv_add_port (HANDLE iface, LPTSTR port_name)
-{
-  DWORD dwNeeded, dwStatus, rv, err;
-
-  rv =
-    XcvData (iface, L"AddPort", (PBYTE) port_name,
-             ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0, &dwNeeded,
-             &dwStatus);
-
-  if (rv == FALSE)
-    {
-      err = GetLastError ();
-      pusherrormessage (_T ("Unable to add port"), err);
-      pushint (-1);
-    }
-
-  return rv;
 }
 
 /* Parse dependent files in driver ini file. */
@@ -687,51 +642,41 @@ void DLLEXPORT
 nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
            stack_t ** stacktop)
 {
+  DWORD dwNeeded, dwStatus, rv, err;
+
   HANDLE iface = NULL;
   LPTSTR port_name = NULL;
+  PRINTER_DEFAULTS pd = { NULL, NULL, SERVER_ACCESS_ADMINISTER };
 
   EXDLL_INIT ();
   port_name = GlobalAlloc (GPTR, BUF_SIZE);
 
   popstring (port_name);        /* Pop port name */
-  if ((iface = xcv_open (port_name, NULL, string_size)) == NULL)
-    goto cleanup;
+  if (OpenPrinter (_T (",XcvMonitor Redirected Port"), &iface, &pd) == FALSE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to open Xcv interface"), err);
+      pushint (-1);
+      goto cleanup;
+    }
 
-  if (xcv_add_port (iface, port_name) == FALSE)
-    goto cleanup;
+  rv = XcvData (iface, L"AddPort", (PBYTE) port_name,
+                ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0,
+                &dwNeeded, &dwStatus);
+
+  if (rv == FALSE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to add port"), err);
+      pushint (-1);
+      goto cleanup;
+    }
 
   pushint (0);
 
 cleanup:
   ClosePrinter (iface);
   GlobalFree (port_name);
-}
-
-void DLLEXPORT
-nsAddPortMonitor (HWND hwndParent, int string_size, LPTSTR variables,
-                  stack_t ** stacktop)
-{
-  HANDLE iface = NULL;
-  LPTSTR port_name = NULL, monitor_name = NULL;
-
-  EXDLL_INIT ();
-  port_name = GlobalAlloc (GPTR, BUF_SIZE);
-  monitor_name = GlobalAlloc (GPTR, BUF_SIZE);
-
-  popstring (monitor_name);     /* Pop print monitor */
-  popstring (port_name);        /* Pop port name */
-  if ((iface = xcv_open (port_name, monitor_name, string_size)) == NULL)
-    goto cleanup;
-
-  if (xcv_add_port (iface, port_name) == FALSE)
-    goto cleanup;
-
-  pushint (0);
-
-cleanup:
-  ClosePrinter (iface);
-  GlobalFree (port_name);
-  GlobalFree (monitor_name);
 }
 
 void DLLEXPORT
@@ -742,13 +687,19 @@ nsDeletePort (HWND hwndParent, int string_size, LPTSTR variables,
 
   HANDLE iface = NULL;
   LPTSTR port_name = NULL;
+  PRINTER_DEFAULTS pd = { NULL, NULL, SERVER_ACCESS_ADMINISTER };
 
   EXDLL_INIT ();
   port_name = GlobalAlloc (GPTR, BUF_SIZE);
 
   popstring (port_name);        /* Pop port name */
-  if ((iface = xcv_open (port_name, NULL, string_size)) == NULL)
-    goto cleanup;
+  if (OpenPrinter (_T (",XcvMonitor Redirected Port"), &iface, &pd) == FALSE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to open Xcv interface"), err);
+      pushint (-1);
+      goto cleanup;
+    }
 
   rv =
     XcvData (iface, L"DeletePort", (PBYTE) port_name,
@@ -885,6 +836,7 @@ nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
   RECONFIG config;
   HANDLE iface = NULL;
   LPTSTR buf = NULL;
+  PRINTER_DEFAULTS pd = { NULL, NULL, SERVER_ACCESS_ADMINISTER };
 
   EXDLL_INIT ();
   ZeroMemory (&config, sizeof (RECONFIG));
@@ -902,8 +854,13 @@ nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
   popstring (buf);
   lstrcpy (config.szPortName, buf);
 
-  if ((iface = xcv_open (buf, _T ("Redirected Port"), string_size)) == NULL)
-    goto cleanup;
+  if (OpenPrinter (_T (",XcvMonitor Redirected Port"), &iface, &pd) == FALSE)
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to open Xcv interface"), err);
+      pushint (-1);
+      goto cleanup;
+    }
 
   /* Command */
   popstring (buf);

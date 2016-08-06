@@ -1,6 +1,6 @@
 ;
 ; Created:  Sat 30 Apr 2016 03:26:07 PM PDT
-; Modified: Tue 07 Jun 2016 10:47:11 PM PDT
+; Modified: Fri 05 Aug 2016 03:37:15 PM PDT
 ;
 ; Copyright (C) 2016  Robert Gill
 ;
@@ -8,7 +8,8 @@
 !ifndef PRINTER_NSH
 !define PRINTER_NSH
 
-!macro _PrinterSelectDialog _RET
+!macro _PrinterSelectDialog _DEFAULT_NONE _RET
+Push "${_DEFAULT_NONE}"
 Printer::nsPrinterSelectDialog
 Pop "${_RET}"
 !macroend

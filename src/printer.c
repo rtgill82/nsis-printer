@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Tue 07 Jun 2016 10:03:01 PM PDT
+ * Modified: Fri 05 Aug 2016 05:51:07 PM PDT
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -69,6 +69,7 @@ struct printer_select_dialog_opts_s
 {
   DWORD dwPrintersNum;
   LPPRINTER_INFO lpbPrinterInfo;
+  BOOL default_none;
 };
 
 static HINSTANCE g_hInstance;
@@ -127,25 +128,43 @@ dircpy (LPTSTR dest, LPCTSTR path)
 static INT_PTR CALLBACK
 printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-  unsigned int idx, len;
   struct printer_select_dialog_opts_s *opts;
-  LPTSTR printerName;
+  LPTSTR printerName, defaultPrinter;
+  DWORD dwNeeded;
+  unsigned int idx, len, idx_offset = 0;
   static HWND prnCombo = NULL;
 
   switch (msg)
     {
     case WM_INITDIALOG:
+      GetDefaultPrinter (NULL, &dwNeeded);
+      defaultPrinter = GlobalAlloc (GPTR, dwNeeded);
+      if (GetDefaultPrinter (defaultPrinter, &dwNeeded) == FALSE)
+        {
+          GlobalFree (defaultPrinter);
+          defaultPrinter = NULL;
+        }
+
       opts = (struct printer_select_dialog_opts_s *) lParam;
       prnCombo = GetDlgItem (hwnd, IDC_PRINTER_COMBO);
       SendMessage (prnCombo, CB_RESETCONTENT, 0, 0);
-      SendMessage (prnCombo, CB_ADDSTRING, 0,
-                   (LPARAM) _T ("None (Printing Disabled)"));
-
-      for (idx = 0; idx < opts->dwPrintersNum; idx++)
-        SendMessage (prnCombo, CB_ADDSTRING, 0,
-                     (LPARAM) opts->lpbPrinterInfo[idx].pPrinterName);
+      if (opts->default_none == TRUE)
+        {
+          SendMessage (prnCombo, CB_ADDSTRING, 0,
+                       (LPARAM) _T ("None (Printing Disabled)"));
+          idx_offset += 1;
+        }
 
       SendMessage (prnCombo, CB_SETCURSEL, 0, 0);
+      for (idx = 0; idx < opts->dwPrintersNum; idx++)
+        {
+          SendMessage (prnCombo, CB_ADDSTRING, 0,
+                       (LPARAM) opts->lpbPrinterInfo[idx].pPrinterName);
+          if (defaultPrinter && lstrcmp (opts->lpbPrinterInfo[idx].pPrinterName, defaultPrinter) == 0)
+            SendMessage (prnCombo, CB_SETCURSEL, idx + idx_offset, 0);
+        }
+
+      GlobalFree (defaultPrinter);
       return TRUE;
 
     case WM_COMMAND:
@@ -448,12 +467,21 @@ void DLLEXPORT
 nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t ** stacktop)
 {
-  LPTSTR printerName;
+  LPTSTR printerName, buf;
   DWORD dwNeeded;
   struct printer_select_dialog_opts_s opts;
 
   EXDLL_INIT ();
   ZeroMemory (&opts, sizeof (struct printer_select_dialog_opts_s));
+  opts.default_none = FALSE;
+
+  /* Check "DEFAULT_NONE" parameter. */
+  buf = GlobalAlloc (GPTR, BUF_SIZE);
+  popstring (buf);
+  if (lstrcmpi (buf, _T ("true")) == 0)
+    opts.default_none = TRUE;
+  GlobalFree (buf);
+
   EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
                 LPPRINTER_INFO_LEVEL, NULL, 0, &dwNeeded,
                 &opts.dwPrintersNum);

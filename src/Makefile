@@ -1,6 +1,6 @@
 #
 # Created:  Fri 12 Dec 2014 07:37:55 PM PST
-# Modified: Mon 06 Jun 2016 08:20:21 PM PDT
+# Modified: Sat 13 Aug 2016 05:00:06 PM PDT
 #
 
 CFLAGS  = -march=i686 -fomit-frame-pointer -ftracer -Os -Wall
@@ -61,14 +61,11 @@ $(UNICODE_OBJDIR)/%.o: %.c | .obj/unicode
 $(UNICODE_OBJDIR)/%.res: %.rc | .obj/unicode
 	$(RC) $(CPPFLAGS) $(UNICODE_CPPFLAGS) -O coff -o $@ $<
 
-.obj/ansi: .obj
-	mkdir .obj/ansi
+.obj/ansi:
+	-mkdir -p .obj/ansi
 
-.obj/unicode: .obj
-	mkdir .obj/unicode
-
-.obj:
-	mkdir .obj
+.obj/unicode:
+	-mkdir -p .obj/unicode
 
 clean:
 	-rm $(ANSI_DLL) $(UNICODE_DLL)

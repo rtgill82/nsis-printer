@@ -1,24 +1,26 @@
 #
 # Created:  Fri 12 Dec 2014 07:37:55 PM PST
-# Modified: Sat 13 Aug 2016 05:00:06 PM PDT
+# Modified: Tue 13 Sep 2016 10:43:43 PM PDT
 #
-
-CFLAGS  = -march=i686 -fomit-frame-pointer -ftracer -Os -Wall
-LDFLAGS = -s
-HOST    = i686-w64-mingw32
 
 DLLNAME = Printer.dll
 CCPATH  = /usr/bin
+HOST = i686-w64-mingw32
 CC = $(CCPATH)/$(HOST)-gcc
 RC = $(CCPATH)/$(HOST)-windres
 
+CFLAGS = -march=i686 -fomit-frame-pointer -ftracer -Os -Wall
+EXTRA_LDFLAGS := $(LDFLAGS)
+override LDFLAGS := -s $(EXTRA_LDFLAGS)
+
 ifeq ($(DEBUG),true)
-CFLAGS  = -march=i686 -g3 -Og -Wall
-LDFLAGS =
+CFLAGS  = -march=i686 -g3 -Og -Wall $(EXTRA_CFLAGS)
+override LDFLAGS  =
+override LDFLAGS := $(EXTRA_LDFLAGS)
 endif
 
-CPPFLAGS = -DNSISCALL="__attribute__((__stdcall__))"
-LDFLAGS += -mwindows -Wl,--kill-at -static-libgcc -shared
+CPPFLAGS += -DNSISCALL="__attribute__((__stdcall__))"
+override LDFLAGS += -mwindows -Wl,--kill-at -static-libgcc -shared
 UNICODE_CPPFLAGS = -DUNICODE -D_UNICODE
 UNICODE_LDFLAGS  = -municode
 

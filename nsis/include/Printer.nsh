@@ -1,6 +1,6 @@
 ;
 ; Created:  Sat 30 Apr 2016 03:26:07 PM PDT
-; Modified: Fri 05 Aug 2016 03:37:15 PM PDT
+; Modified: Sat 24 Sep 2016 02:22:45 AM PDT
 ;
 ; Copyright (C) 2016  Robert Gill
 ;
@@ -43,8 +43,8 @@ Pop "${_RET}"
 !macroend
 !define EnumPorts "!insertmacro _EnumPorts"
 
-!macro _AddPort _PORT _RET
-Push "${_PORT}"
+!macro _AddPort _NAME _RET
+Push "${_NAME}"
 Printer::nsAddPort
 Pop "${_RET}"
 !macroend

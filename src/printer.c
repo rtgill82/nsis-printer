@@ -1,8 +1,8 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Wed 21 Dec 2016 01:38:26 AM PST
+ * Modified: Wed 21 Dec 2016 08:56:27 AM PST
  *
- * Copyright (C) 2014-2016  Robert Gill
+ * Copyright (C) 2014-2016 Robert Gill
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -161,7 +161,9 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
           SendMessage (prnCombo, CB_ADDSTRING, 0,
                        (LPARAM) opts->lpbPrinterInfo[idx].pPrinterName);
-          if (defaultPrinter && lstrcmp (opts->lpbPrinterInfo[idx].pPrinterName, defaultPrinter) == 0)
+          if (defaultPrinter &&
+              lstrcmp (opts->lpbPrinterInfo[idx].pPrinterName,
+                       defaultPrinter) == 0)
             SendMessage (prnCombo, CB_SETCURSEL, idx + idx_offset, 0);
         }
 
@@ -229,7 +231,7 @@ parse_depfiles (LPTSTR str)
 }
 
 static void
-read_driverini (LPTSTR inifile, DRIVER_INFO * di)
+read_driverini (LPTSTR inifile, DRIVER_INFO *di)
 {
   LPTSTR buf;
 
@@ -267,7 +269,7 @@ read_driverini (LPTSTR inifile, DRIVER_INFO * di)
 }
 
 static void
-cleanup_driverinfo (DRIVER_INFO * di)
+cleanup_driverinfo (DRIVER_INFO *di)
 {
   GlobalFree (di->pName);
   GlobalFree (di->pEnvironment);
@@ -279,7 +281,7 @@ cleanup_driverinfo (DRIVER_INFO * di)
 }
 
 static size_t
-max_driverfile_name (DRIVER_INFO * di)
+max_driverfile_name (DRIVER_INFO *di)
 {
   LPTSTR filename;
   size_t filemax = 0;
@@ -303,7 +305,7 @@ max_driverfile_name (DRIVER_INFO * di)
 }
 
 static DWORD
-copy_driverfiles (LPTSTR srcdir, DRIVER_INFO * di)
+copy_driverfiles (LPTSTR srcdir, DRIVER_INFO *di)
 {
   LPTSTR filename;
   size_t srcbuflen, destbuflen, filemax;
@@ -386,7 +388,7 @@ cleanup:
 }
 
 static DWORD
-delete_driverfiles (DRIVER_INFO * di)
+delete_driverfiles (DRIVER_INFO *di)
 {
   LPTSTR filename;
   size_t filemax, buflen;
@@ -461,7 +463,7 @@ cleanup:
 
 void DLLEXPORT
 nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
-                       stack_t ** stacktop)
+                       stack_t **stacktop)
 {
   LPTSTR printerName, buf;
   DWORD dwNeeded;
@@ -491,7 +493,7 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
                                          MAKEINTRESOURCE (IDD_PRINTER_SELECT),
                                          hwndParent,
                                          printer_select_dialog_proc,
-                                         (LPARAM) & opts);
+                                         (LPARAM) &opts);
 
   pushstring (printerName);
   GlobalFree (opts.lpbPrinterInfo);
@@ -500,7 +502,7 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
 
 void DLLEXPORT
 nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
-                stack_t ** stacktop)
+                stack_t **stacktop)
 {
   int i;
   DWORD dwNeeded, dwPrintersNum;
@@ -537,7 +539,7 @@ cleanup:
 
 void DLLEXPORT
 nsAddPrinter (HWND hwndParent, int string_size, LPTSTR variables,
-              stack_t ** stacktop)
+              stack_t **stacktop)
 {
   PRINTER_INFO_2 printerInfo;
   DWORD err;
@@ -567,7 +569,7 @@ nsAddPrinter (HWND hwndParent, int string_size, LPTSTR variables,
     GlobalAlloc (GPTR, ((lstrlen (buf) + 1) * sizeof (TCHAR)));
   lstrcpy (printerInfo.pDriverName, buf);
 
-  hPrinter = AddPrinter (NULL, 2, (LPBYTE) & printerInfo);
+  hPrinter = AddPrinter (NULL, 2, (LPBYTE) &printerInfo);
   if (hPrinter == NULL)
     {
       err = GetLastError ();
@@ -588,7 +590,7 @@ cleanup:
 
 void DLLEXPORT
 nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
-                 stack_t ** stacktop)
+                 stack_t **stacktop)
 {
   DWORD err;
   BOOL rv;
@@ -629,7 +631,7 @@ cleanup:
 
 void DLLEXPORT
 nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
-             stack_t ** stacktop)
+             stack_t **stacktop)
 {
   int i;
   DWORD dwNeeded, dwPortsNum;
@@ -664,7 +666,7 @@ cleanup:
 
 void DLLEXPORT
 nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
-           stack_t ** stacktop)
+           stack_t **stacktop)
 {
   DWORD dwNeeded, dwStatus, rv, err;
 
@@ -705,7 +707,7 @@ cleanup:
 
 void DLLEXPORT
 nsDeletePort (HWND hwndParent, int string_size, LPTSTR variables,
-              stack_t ** stacktop)
+              stack_t **stacktop)
 {
   DWORD dwNeeded, dwStatus, rv, err;
 
@@ -747,7 +749,7 @@ cleanup:
 
 void DLLEXPORT
 nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
-                     stack_t ** stacktop)
+                     stack_t **stacktop)
 {
   DWORD dwNeeded, err;
   BOOL rv;
@@ -759,7 +761,8 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
   GetDefaultPrinter (NULL, &dwNeeded);
   if (dwNeeded > BUF_SIZE)
     {
-      pusherrormessage (_T ("Not enough buffer space for default printer name"), 0);
+      pusherrormessage (
+        _T ("Not enough buffer space for default printer name"), 0);
       pushint (-1);
       goto cleanup;
     }
@@ -781,7 +784,7 @@ cleanup:
 
 void DLLEXPORT
 nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
-                     stack_t ** stacktop)
+                     stack_t **stacktop)
 {
   DWORD err;
   BOOL rv;
@@ -809,7 +812,7 @@ cleanup:
 
 void DLLEXPORT
 nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
-                    stack_t ** stacktop)
+                    stack_t **stacktop)
 {
   DWORD err;
   DRIVER_INFO di;
@@ -833,7 +836,7 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
       goto cleanup;
     }
 
-  rv = AddPrinterDriver (NULL, DRIVER_INFO_LEVEL, (LPBYTE) & di);
+  rv = AddPrinterDriver (NULL, DRIVER_INFO_LEVEL, (LPBYTE) &di);
   if (rv == FALSE)
     {
       err = GetLastError ();
@@ -853,7 +856,7 @@ cleanup:
 
 void DLLEXPORT
 nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
-                       stack_t ** stacktop)
+                       stack_t **stacktop)
 {
   DWORD dwNeeded, dwStatus, err;
   BOOL rv;

@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Fri 05 Aug 2016 05:51:07 PM PDT
+ * Modified: Wed 21 Dec 2016 01:38:26 AM PST
  *
  * Copyright (C) 2014-2016  Robert Gill
  *
@@ -32,6 +32,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define PRINTING_DISABLED (_T ("None (Printing Disabled)"))
 
 #define DRIVER_INFO_LEVEL 3
 #define DRIVER_INFO DRIVER_INFO_3
@@ -150,8 +152,7 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       SendMessage (prnCombo, CB_RESETCONTENT, 0, 0);
       if (opts->default_none == TRUE)
         {
-          SendMessage (prnCombo, CB_ADDSTRING, 0,
-                       (LPARAM) _T ("None (Printing Disabled)"));
+          SendMessage (prnCombo, CB_ADDSTRING, 0, (LPARAM) PRINTING_DISABLED);
           idx_offset += 1;
         }
 
@@ -176,14 +177,9 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           printerName =
             (LPTSTR) GlobalAlloc (GPTR, (len + 1) * sizeof (TCHAR));
 
-          if (idx == 0)
-            {
-              lstrcpy (printerName, _T (""));
-            }
-          else
-            {
-              SendMessage (prnCombo, CB_GETLBTEXT, idx, (LPARAM) printerName);
-            }
+          SendMessage (prnCombo, CB_GETLBTEXT, idx, (LPARAM) printerName);
+          if (lstrcmp (PRINTING_DISABLED, printerName) == 0)
+            lstrcpy (printerName, _T (""));
 
           prnCombo = NULL;
           EndDialog (hwnd, (INT_PTR) printerName);

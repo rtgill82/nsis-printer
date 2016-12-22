@@ -1,6 +1,13 @@
 *.def
 *.o
 Printer.dll
+README.aux
+README.dvi
+README.html
+README.log
+README.out
+README.pdf
+README.tex
 src/.obj
 nsisprinter.opensdf
 nsisprinter.sdf

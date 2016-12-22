@@ -1,0 +1,12 @@
+diff -ru mingw-w64-v5.0.0.orig/mingw-w64-crt/lib32/winspool.def mingw-w64-v5.0.0/mingw-w64-crt/lib32/winspool.def
+--- mingw-w64-v5.0.0.orig/mingw-w64-crt/lib32/winspool.def	2016-10-17 05:07:12.000000000 -0700
++++ mingw-w64-v5.0.0/mingw-w64-crt/lib32/winspool.def	2016-12-21 16:27:07.980341400 -0800
+@@ -115,6 +115,8 @@
+ ResetPrinterW@8
+ ScheduleJob@8
+ SetAllocFailCount@20
++SetDefaultPrinterA@4
++SetDefaultPrinterW@4
+ SetFormA@16
+ SetFormW@16
+ SetJobA@20

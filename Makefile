@@ -1,6 +1,6 @@
 #
 # Created:  Sat 13 Dec 2014 05:07:48 PM PST
-# Modified: Wed 21 Dec 2016 05:51:16 PM PST
+# Modified: Fri 23 Dec 2016 07:11:53 PM PST
 #
 # Copyright 2016 (C) Robert Gill
 #
@@ -18,6 +18,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+PACKAGE = nsisprinter
+PACKAGE_VERSION = 1.0.0
+
+DISTFILE = $(PACKAGE)-$(PACKAGE_VERSION).zip
+DISTDIR = ./$(PACKAGE)-$(PACKAGE_VERSION)
 NSIS_HEADER = nsis/include/Printer.nsh
 
 all: README.rst
@@ -31,9 +36,31 @@ README.rst: $(NSIS_HEADER) README.rst.in
 			} next \
 		} //' $(word 2,$^) > $@
 
+dist: all
+	-rm -rf ./VS2015/.vs
+	-rm -rf ./VS2015/Debug*
+	-rm -rf ./VS2015/Release*
+	-rm -f ./VS2015/nsisprinter.VC.*
+	-rm -f ./VS2015/nsisprinter.vcxproj.user
+	-rm -f ./VS2015/nsisprinter.{opensdf,sdf}
+	-rm -f ./VS2015/nsisprinter.v12.suo
+	mkdir -p $(DISTDIR)
+	find . -not -name '.' \
+		-not -wholename './.git*' \
+		-not -wholename './src/.obj*' \
+		-not -wholename '$(DISTDIR)*' \
+		-type d -exec mkdir $(DISTDIR)/{} \;
+	find . -not -name '.' \
+		-not -wholename './.git*' \
+		-not -wholename './src/.obj*' \
+		-not -wholename '$(DISTDIR)*' \
+		-type f -exec cp {} $(DISTDIR)/{} \;
+	7z -tzip -mx=9 a $(DISTFILE) $(DISTDIR)
+	-rm -rf $(DISTDIR)
+
 clean:
 	$(MAKE) -C src clean
-	-rm -f README.aux README.dvi README.html README.log README.out \
-		README.pdf README.tex
+	-rm -f README.{aux,dvi,html,log,out,pdf,tex}
+	-rm -f $(DISTFILE)
 
 .PHONY: all clean

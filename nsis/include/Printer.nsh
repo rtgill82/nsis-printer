@@ -1,6 +1,6 @@
 ;
 ; Created:  Sat 30 Apr 2016 03:26:07 PM PDT
-; Modified: Wed 21 Dec 2016 02:49:29 PM PST
+; Modified: Fri 23 Dec 2016 11:15:04 PM PST
 ;
 ; Copyright 2016 (C) Robert Gill
 ;
@@ -48,8 +48,8 @@ Pop ${_RET}
 ; Enumerates the printers available on the current machine. The number of
 ; printers available are popped into the register ``RET``. The names of the
 ; available printers remain on the stack to be popped off by the caller.  If
-; ``-1`` is popped into ``RET`` then an error has occured and the error message
-; remains on the stack.
+; ``-1`` is popped into ``RET`` then an error has occurred and the error
+; message remains on the stack.
 ;
 !macro _EnumPrinters _RET
 Printer::nsEnumPrinters
@@ -105,7 +105,7 @@ Pop ${_RET}
 ; Enumerates the ports available on the current machine. The number of ports
 ; available are popped into the register ``RET``. The names of the available
 ; ports remain on the stack to be popped off by the caller.  If ``-1`` is
-; popped into ``RET`` then an error has occured and the error message remains
+; popped into ``RET`` then an error has occurred and the error message remains
 ; on the stack.
 ;
 !macro _EnumPorts _RET
@@ -160,7 +160,7 @@ Pop ${_RET}
 ;  Usage: ``${GetDefaultPrinter} RET``
 ;
 ; Gets the currently set default printer on the current machine. The name of
-; the printer is popped into the register ``RET``. If an error occurs ``-1`` is
+; the printer is popped into the register ``RET``. If an error occurs ``0`` is
 ; popped into ``RET`` and the error message remains on the stack.
 ;
 !macro _GetDefaultPrinter _RET
@@ -176,7 +176,7 @@ Pop ${_RET}
 ;  Usage: ``${SetDefaultPrinter} NAME RET``
 ;
 ; Sets the default printer on the current machine to ``NAME``. If an error
-; occurs ``-1`` is popped into ``RET`` and the error message remains on the
+; occurs ``0`` is popped into ``RET`` and the error message remains on the
 ; stack.
 ;
 ; NOTE: *Windows 10* will use the last printer printed to as the default
@@ -197,8 +197,8 @@ Pop ${_RET}
 ;  Usage: ``${AddPrinterDriver} INIFILE RET``
 ;
 ; Adds a printer driver defined by ``INIFILE``. The Driver INI file format is
-; documented under `Driver INI Documentation`_. If an error occurs ``-1`` is
-; popped into ``RET`` and the error message remains on the stack.
+; documented under `Driver INI File Documentation`_. If an error occurs ``0``
+; is popped into ``RET`` and the error message remains on the stack.
 ;
 !macro _AddPrinterDriver _INIFILE _RET
 Push "${_INIFILE}"
@@ -216,8 +216,9 @@ Pop ${_RET}
 ; Configures a RedMon port to redirect data to the specified command. ``NAME``
 ; is the name of the port to configure, usually taking the form of ``RPT?``.
 ; ``COMMAND`` is the command to be executed when data is received by the port.
-; If an error occurs ``-1`` is popped into ``RET`` and the error message
-; remains on the stack.
+; RedMon must have already been installed through some other means before this
+; function can be called. If an error occurs ``0`` is popped into ``RET`` and
+; the error message remains on the stack.
 ;
 !macro _ConfigureRedMonPort _NAME _COMMAND _RET
 Push "${_COMMAND}"
@@ -227,4 +228,4 @@ Pop ${_RET}
 !macroend
 !define ConfigureRedMonPort "!insertmacro _ConfigureRedMonPort"
 
-!endif ;PRINTER_NSH
+!endif ; PRINTER_NSH

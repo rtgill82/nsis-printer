@@ -69,6 +69,59 @@ nsisprinter directory and execute the command:
 
  ``make LDFLAGS=-L/opt/mingw-w64-v5.0.0/lib``
 
+Example Usage
+-------------
+
+The following examples provide a basic idea of how to use this plugin. All
+examples assume the inclusion of the ``logiclib.nsh`` header.
+
+EnumPrinters Example
+~~~~~~~~~~~~~~~~~~~~
+
+.. code::
+
+  ${EnumPrinters} $R0
+  ${If} $R0 == -1
+    Pop $R0
+    DetailPrint "Error: $R0"
+    Abort
+  ${EndIf}
+
+  DetailPrint "Available Printers:"
+  ${DoWhile} $R0 > 0
+    Pop $0
+    DetailPrint "  $0"
+    IntOp $R0 $R0 - 1
+  ${Loop}
+
+AddPrinterDriver Example
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code::
+
+  ; In Main Section
+  SetOutPath "$PLUGINSDIR"
+  File /r "Driver Name"
+
+  ; In -Post Section
+  ${AddPrinterDriver} "$PLUGINSDIR\Driver Name\DRIVER.INI" $R0
+  ${If} $R0 == 0
+    Pop $1
+    DetailPrint "Error: $R0"
+  ${EndIf}
+
+AddPrinter Example
+~~~~~~~~~~~~~~~~~~
+
+.. code::
+
+  ${AddPrinter} "Printer Name" "RPT1" "Driver Name" $R0
+  ${If} $R0 == 0
+    Pop $R0
+    DetailPrint "Error: $R0"
+    Abort
+  ${EndIf}
+
 API Documentation
 -----------------
 
@@ -90,8 +143,8 @@ EnumPrinters
 Enumerates the printers available on the current machine. The number of
 printers available are popped into the register ``RET``. The names of the
 available printers remain on the stack to be popped off by the caller.  If
-``-1`` is popped into ``RET`` then an error has occured and the error message
-remains on the stack.
+``-1`` is popped into ``RET`` then an error has occurred and the error
+message remains on the stack.
 
 AddPrinter
 ~~~~~~~~~~
@@ -122,7 +175,7 @@ EnumPorts
 Enumerates the ports available on the current machine. The number of ports
 available are popped into the register ``RET``. The names of the available
 ports remain on the stack to be popped off by the caller.  If ``-1`` is
-popped into ``RET`` then an error has occured and the error message remains
+popped into ``RET`` then an error has occurred and the error message remains
 on the stack.
 
 AddPort
@@ -154,7 +207,7 @@ GetDefaultPrinter
  Usage: ``${GetDefaultPrinter} RET``
 
 Gets the currently set default printer on the current machine. The name of
-the printer is popped into the register ``RET``. If an error occurs ``-1`` is
+the printer is popped into the register ``RET``. If an error occurs ``0`` is
 popped into ``RET`` and the error message remains on the stack.
 
 SetDefaultPrinter
@@ -163,7 +216,7 @@ SetDefaultPrinter
  Usage: ``${SetDefaultPrinter} NAME RET``
 
 Sets the default printer on the current machine to ``NAME``. If an error
-occurs ``-1`` is popped into ``RET`` and the error message remains on the
+occurs ``0`` is popped into ``RET`` and the error message remains on the
 stack.
 
 NOTE: *Windows 10* will use the last printer printed to as the default
@@ -176,8 +229,8 @@ AddPrinterDriver
  Usage: ``${AddPrinterDriver} INIFILE RET``
 
 Adds a printer driver defined by ``INIFILE``. The Driver INI file format is
-documented under `Driver INI Documentation`_. If an error occurs ``-1`` is
-popped into ``RET`` and the error message remains on the stack.
+documented under `Driver INI File Documentation`_. If an error occurs ``0``
+is popped into ``RET`` and the error message remains on the stack.
 
 ConfigureRedMonPort
 ~~~~~~~~~~~~~~~~~~~
@@ -187,11 +240,65 @@ ConfigureRedMonPort
 Configures a RedMon port to redirect data to the specified command. ``NAME``
 is the name of the port to configure, usually taking the form of ``RPT?``.
 ``COMMAND`` is the command to be executed when data is received by the port.
-If an error occurs ``-1`` is popped into ``RET`` and the error message
-remains on the stack.
+RedMon must have already been installed through some other means before this
+function can be called. If an error occurs ``0`` is popped into ``RET`` and
+the error message remains on the stack.
+
+Driver INI File Documentation
+-----------------------------
+
+The driver INI file describes the files to be installed using the
+``AddPinterDriver`` function. It should be included in the same directory as
+the driver files it describes. The only required section it has is
+``[driver]``. The following are valid settings within the section.
+
+- ``version``: This must be set to ``3``.
+
+- ``name``: Install the printer driver under this name. This is the name used
+  to reference the driver when using fuctions such as ``AddPrinter``.
+
+- ``environment``: Must be ``Windows NT x86`` or  ``Windows x64`` depending on
+  whether the driver is for a 32-bit or 64-bit architecture respectively.
+
+- ``driver``: The name of the drivers main DLL file.
+
+- ``datafile``: The data file used by the driver.
+
+- ``configfile``: The DLL that presents the driver configuration UI.
+
+- ``helpfile``: The help file for the driver.
+
+- ``depfiles``: Additional files used by the driver separated by
+  semi-colons (;).
+
+Driver INI Example
+~~~~~~~~~~~~~~~~~~
+
+The following is an example of a driver INI file.  The ``depfiles`` setting
+should be on a single line with items separated by semi-colons (;). It has been
+split across lines here for readability.
+
+::
+
+  [driver]
+  version=3
+  name=HP Color LaserJet 4550 PCL 5
+  environment=Windows NT x86
+  driver=UNIDRV.DLL
+  datafile=HPMCPC25.GPD
+  configfile=UNIDRVUI.DLL
+  helpfile=UNIDRV.HLP
+  depfiles=HPZLSLHN.DLL;HPZSSLHN.DLL;HPZUILHN.DLL;HPCDMCLH.DLL;HPZ5RLHN.DLL;
+    HPZSMLHN.GPD;HPZSTLHN.DLL;HPMCPD25.CFG;HPZ5CLHN.INI;HPMCPDP5.XML;
+    HPZSCLHN.DTD;HPZEVLHN.DLL;HPZIDR12.DLL;HPZINW12.DLL;HPZIPM12.DLL;
+    HPZIPR12.DLL;HPZIPT12.DLL;HPZISN12.DLL;HPBMIAPI.DLL;HPBMINI.DLL;
+    HPBOID.DLL;HPBOIDPS.DLL;HPBPRO.DLL;HPBPROPS.DLL;HPEACLHN.HPI;
+    UNIRES.DLL;STDNAMES.GPD;STDDTYPE.GDL;STDSCHEM.GDL;STDSCHMX.GDL;
 
 LICENSE
 -------
+
+Copyright (C) 2016 Robert Gill
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -206,10 +313,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-.. NOTE::
-   Add Example Usage Section
-
-.. NOTE::
-   Add Driver INI File Documentation
+This plugin incorporates data structures from RedMon, which is Copyright (C)
+Ghostgum Software Pty Ltd., and also licensed under GPL-v3.
 
 .. _`Mingw-w64 sources`: https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v5.0.0.tar.bz2/download

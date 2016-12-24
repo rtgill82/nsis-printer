@@ -1,6 +1,6 @@
 #
 # Created:  Sat 13 Dec 2014 05:07:48 PM PST
-# Modified: Fri 23 Dec 2016 07:11:53 PM PST
+# Modified: Fri 23 Dec 2016 07:18:44 PM PST
 #
 # Copyright 2016 (C) Robert Gill
 #
@@ -25,8 +25,10 @@ DISTFILE = $(PACKAGE)-$(PACKAGE_VERSION).zip
 DISTDIR = ./$(PACKAGE)-$(PACKAGE_VERSION)
 NSIS_HEADER = nsis/include/Printer.nsh
 
-all: README.rst
+all: readme
 	$(MAKE) -C src
+
+readme: README.rst
 
 README.rst: $(NSIS_HEADER) README.rst.in
 	awk '/^;;/{f=1;next}/^[^;]/{f=0}f {print substr($$0,3)}' < $< | \

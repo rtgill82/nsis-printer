@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Wed 21 Dec 2016 08:56:27 AM PST
+ * Modified: Fri 23 Dec 2016 10:55:19 PM PST
  *
  * Copyright (C) 2014-2016 Robert Gill
  *
@@ -574,11 +574,11 @@ nsAddPrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add printer"), err);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
-  pushint (0);
+  pushint (1);
 
 cleanup:
   ClosePrinter (hPrinter);
@@ -609,7 +609,7 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open printer"), err);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
@@ -618,11 +618,11 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to delete printer"), err);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
-  pushint (0);
+  pushint (1);
 
 cleanup:
   ClosePrinter (hPrinter);
@@ -682,7 +682,7 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open Xcv interface"), err);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
@@ -694,11 +694,11 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add port"), err);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
-  pushint (0);
+  pushint (1);
 
 cleanup:
   ClosePrinter (iface);
@@ -723,7 +723,7 @@ nsDeletePort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open Xcv interface"), err);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
@@ -736,11 +736,11 @@ nsDeletePort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to delete port"), err);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
-  pushint (0);
+  pushint (1);
 
 cleanup:
   ClosePrinter (iface);
@@ -763,7 +763,7 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       pusherrormessage (
         _T ("Not enough buffer space for default printer name"), 0);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
@@ -772,7 +772,7 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to get default printer"), err);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
@@ -800,11 +800,11 @@ nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to set default printer"), err);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
-  pushint (0);
+  pushint (1);
 
 cleanup:
   GlobalFree (buf);
@@ -832,7 +832,7 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
   if (err)
     {
       pusherrormessage (_T ("Unable to copy driver files"), err);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
@@ -841,12 +841,12 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add printer driver"), err);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
   delete_driverfiles (&di);
-  pushint (0);
+  pushint (1);
 
 cleanup:
   cleanup_driverinfo (&di);
@@ -885,7 +885,7 @@ nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open Xcv interface"), err);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
@@ -902,11 +902,11 @@ nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to configure port"), err);
-      pushint (-1);
+      pushint (0);
       goto cleanup;
     }
 
-  pushint (0);
+  pushint (1);
 
 cleanup:
   ClosePrinter (iface);

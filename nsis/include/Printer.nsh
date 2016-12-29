@@ -1,6 +1,6 @@
 ;
 ; Created:  Sat 30 Apr 2016 03:26:07 PM PDT
-; Modified: Fri 23 Dec 2016 11:15:04 PM PST
+; Modified: Wed 28 Dec 2016 07:02:26 PM PST
 ;
 ; Copyright 2016 (C) Robert Gill
 ;
@@ -28,9 +28,9 @@
 ;  Usage: ``${PrinterSelectDialog} DEFAULT_NONE RET``
 ;
 ; Displays a dialog allowing the user to select a printer from the printers
-; available on the current machine. If ``DEFAULT_NONE`` is ``"true"`` then an
-; empty option is provided and selected by default. The selected printer is
-; popped into the register ``RET``.
+; available on the current machine. If ``DEFAULT_NONE`` is ``true`` then an
+; option for '``None (Printing Disabled)``' is provided and selected by
+; default.  The selected printer is returned in register ``RET``.
 ;
 !macro _PrinterSelectDialog _DEFAULT_NONE _RET
 Push "${_DEFAULT_NONE}"
@@ -46,10 +46,10 @@ Pop ${_RET}
 ;  Usage: ``${EnumPrinters} RET``
 ;
 ; Enumerates the printers available on the current machine. The number of
-; printers available are popped into the register ``RET``. The names of the
-; available printers remain on the stack to be popped off by the caller.  If
-; ``-1`` is popped into ``RET`` then an error has occurred and the error
-; message remains on the stack.
+; printers available are returned in register ``RET``. The names of the
+; available printers remain on the stack to be popped off by the caller. If
+; ``-1`` is returned then an error has occurred and the error message remains
+; on the stack.
 ;
 !macro _EnumPrinters _RET
 Printer::nsEnumPrinters
@@ -65,8 +65,8 @@ Pop ${_RET}
 ;
 ; Installs a printer driver for the printer ``NAME`` using the port ``PORT``.
 ; The driver must have been previously installed and ``DRIVER`` provides the
-; installed driver's name. A return value is popped into the register ``RET``.
-; It will be ``1`` on success or ``0`` on failure. If a failure occurs then an
+; installed driver's name. A return value is returned in register ``RET``. It
+; will be ``1`` on success or ``0`` on failure. If a failure occurs then an
 ; error message remains on the stack.
 ;
 !macro _AddPrinter _NAME _PORT _DRIVER _RET
@@ -85,9 +85,9 @@ Pop ${_RET}
 ;  Usage: ``${DeletePrinter} NAME RET``
 ;
 ; Deletes a printer that's available on this machine. ``NAME`` is the name of
-; the printer to be deleted. A return value is popped into the register
-; ``RET``. It will be ``1`` on success or ``0`` on failure. If a failure occurs
-; then an error message remains on the stack.
+; the printer to be deleted. A return value is returned in register ``RET``. It
+; will be ``1`` on success or ``0`` on failure. If a failure occurs then an
+; error message remains on the stack.
 ;
 !macro _DeletePrinter _NAME _RET
 Push "${_NAME}"
@@ -103,10 +103,9 @@ Pop ${_RET}
 ;  Usage: ``${EnumPorts} RET``
 ;
 ; Enumerates the ports available on the current machine. The number of ports
-; available are popped into the register ``RET``. The names of the available
-; ports remain on the stack to be popped off by the caller.  If ``-1`` is
-; popped into ``RET`` then an error has occurred and the error message remains
-; on the stack.
+; available are returned in register ``RET``. The names of the available ports
+; remain on the stack to be popped off by the caller. If ``-1`` is returned
+; then an error has occurred and the error message remains on the stack.
 ;
 !macro _EnumPorts _RET
 Printer::nsEnumPorts
@@ -121,12 +120,12 @@ Pop ${_RET}
 ;  Usage: ``${AddPort} NAME RET``
 ;
 ; Adds a new port on the current machine. The port will be named ``NAME``. A
-; return value is popped into the register ``RET``. It will be ``1`` on success
-; or ``0`` on failure. If a failure occurs then an error message remains on the
+; return value is returned in register ``RET``. It will be ``1`` on success or
+; ``0`` on failure. If a failure occurs then an error message remains on the
 ; stack.
 ;
 ; NOTE: I've only been able to successfully add RedMon redirect (``RPT?``)
-; ports.  More general ports (``LPT?``, ``COM?``, etc.) all seem to fail. This
+; ports. More general ports (``LPT?``, ``COM?``, etc.) all seem to fail. This
 ; function is most useful when installing and configuring RedMon.
 ;
 !macro _AddPort _NAME _RET
@@ -142,9 +141,9 @@ Pop ${_RET}
 ;
 ;  Usage: ``${DeletePort} NAME RET``
 ;
-; Deletes the port ``NAME`` on the current machine. A return value is popped
-; into the register ``RET``. It will be ``1`` on success or ``0`` on failure.
-; If a failure occurs then an error message remains on the stack.
+; Deletes the port ``NAME`` on the current machine. A return value is returned
+; in register ``RET``. It will be ``1`` on success or ``0`` on failure. If a
+; failure occurs then an error message remains on the stack.
 ;
 !macro _DeletePort _NAME _RET
 Push "${_NAME}"
@@ -160,8 +159,8 @@ Pop ${_RET}
 ;  Usage: ``${GetDefaultPrinter} RET``
 ;
 ; Gets the currently set default printer on the current machine. The name of
-; the printer is popped into the register ``RET``. If an error occurs ``0`` is
-; popped into ``RET`` and the error message remains on the stack.
+; the printer is returned in register ``RET``. If an error occurs ``0`` is
+; returned and the error message remains on the stack.
 ;
 !macro _GetDefaultPrinter _RET
 Printer::nsGetDefaultPrinter
@@ -176,10 +175,9 @@ Pop ${_RET}
 ;  Usage: ``${SetDefaultPrinter} NAME RET``
 ;
 ; Sets the default printer on the current machine to ``NAME``. If an error
-; occurs ``0`` is popped into ``RET`` and the error message remains on the
-; stack.
+; occurs ``0`` is returned and the error message remains on the stack.
 ;
-; NOTE: *Windows 10* will use the last printer printed to as the default
+; NOTE: **Windows 10** will use the last printer printed to as the default
 ; printer. This can be overridden by disabling ``LegacyDefaultPrinterMode`` in
 ; the registry before calling ``SetDefaultPrinter``.
 ;
@@ -198,7 +196,7 @@ Pop ${_RET}
 ;
 ; Adds a printer driver defined by ``INIFILE``. The Driver INI file format is
 ; documented under `Driver INI File Documentation`_. If an error occurs ``0``
-; is popped into ``RET`` and the error message remains on the stack.
+; is returned and the error message remains on the stack.
 ;
 !macro _AddPrinterDriver _INIFILE _RET
 Push "${_INIFILE}"
@@ -217,8 +215,8 @@ Pop ${_RET}
 ; is the name of the port to configure, usually taking the form of ``RPT?``.
 ; ``COMMAND`` is the command to be executed when data is received by the port.
 ; RedMon must have already been installed through some other means before this
-; function can be called. If an error occurs ``0`` is popped into ``RET`` and
-; the error message remains on the stack.
+; function can be called. If an error occurs ``0`` is returned and the error
+; message remains on the stack.
 ;
 !macro _ConfigureRedMonPort _NAME _COMMAND _RET
 Push "${_COMMAND}"

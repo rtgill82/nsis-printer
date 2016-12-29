@@ -131,9 +131,9 @@ PrinterSelectDialog
  Usage: ``${PrinterSelectDialog} DEFAULT_NONE RET``
 
 Displays a dialog allowing the user to select a printer from the printers
-available on the current machine. If ``DEFAULT_NONE`` is ``"true"`` then an
-empty option is provided and selected by default. The selected printer is
-popped into the register ``RET``.
+available on the current machine. If ``DEFAULT_NONE`` is ``true`` then an
+option for '``None (Printing Disabled)``' is provided and selected by
+default.  The selected printer is returned in register ``RET``.
 
 EnumPrinters
 ~~~~~~~~~~~~
@@ -141,10 +141,10 @@ EnumPrinters
  Usage: ``${EnumPrinters} RET``
 
 Enumerates the printers available on the current machine. The number of
-printers available are popped into the register ``RET``. The names of the
-available printers remain on the stack to be popped off by the caller.  If
-``-1`` is popped into ``RET`` then an error has occurred and the error
-message remains on the stack.
+printers available are returned in register ``RET``. The names of the
+available printers remain on the stack to be popped off by the caller. If
+``-1`` is returned then an error has occurred and the error message remains
+on the stack.
 
 AddPrinter
 ~~~~~~~~~~
@@ -153,8 +153,8 @@ AddPrinter
 
 Installs a printer driver for the printer ``NAME`` using the port ``PORT``.
 The driver must have been previously installed and ``DRIVER`` provides the
-installed driver's name. A return value is popped into the register ``RET``.
-It will be ``1`` on success or ``0`` on failure. If a failure occurs then an
+installed driver's name. A return value is returned in register ``RET``. It
+will be ``1`` on success or ``0`` on failure. If a failure occurs then an
 error message remains on the stack.
 
 DeletePrinter
@@ -163,9 +163,9 @@ DeletePrinter
  Usage: ``${DeletePrinter} NAME RET``
 
 Deletes a printer that's available on this machine. ``NAME`` is the name of
-the printer to be deleted. A return value is popped into the register
-``RET``. It will be ``1`` on success or ``0`` on failure. If a failure occurs
-then an error message remains on the stack.
+the printer to be deleted. A return value is returned in register ``RET``. It
+will be ``1`` on success or ``0`` on failure. If a failure occurs then an
+error message remains on the stack.
 
 EnumPorts
 ~~~~~~~~~
@@ -173,10 +173,9 @@ EnumPorts
  Usage: ``${EnumPorts} RET``
 
 Enumerates the ports available on the current machine. The number of ports
-available are popped into the register ``RET``. The names of the available
-ports remain on the stack to be popped off by the caller.  If ``-1`` is
-popped into ``RET`` then an error has occurred and the error message remains
-on the stack.
+available are returned in register ``RET``. The names of the available ports
+remain on the stack to be popped off by the caller. If ``-1`` is returned
+then an error has occurred and the error message remains on the stack.
 
 AddPort
 ~~~~~~~
@@ -184,12 +183,12 @@ AddPort
  Usage: ``${AddPort} NAME RET``
 
 Adds a new port on the current machine. The port will be named ``NAME``. A
-return value is popped into the register ``RET``. It will be ``1`` on success
-or ``0`` on failure. If a failure occurs then an error message remains on the
+return value is returned in register ``RET``. It will be ``1`` on success or
+``0`` on failure. If a failure occurs then an error message remains on the
 stack.
 
 NOTE: I've only been able to successfully add RedMon redirect (``RPT?``)
-ports.  More general ports (``LPT?``, ``COM?``, etc.) all seem to fail. This
+ports. More general ports (``LPT?``, ``COM?``, etc.) all seem to fail. This
 function is most useful when installing and configuring RedMon.
 
 DeletePort
@@ -197,9 +196,9 @@ DeletePort
 
  Usage: ``${DeletePort} NAME RET``
 
-Deletes the port ``NAME`` on the current machine. A return value is popped
-into the register ``RET``. It will be ``1`` on success or ``0`` on failure.
-If a failure occurs then an error message remains on the stack.
+Deletes the port ``NAME`` on the current machine. A return value is returned
+in register ``RET``. It will be ``1`` on success or ``0`` on failure. If a
+failure occurs then an error message remains on the stack.
 
 GetDefaultPrinter
 ~~~~~~~~~~~~~~~~~
@@ -207,8 +206,8 @@ GetDefaultPrinter
  Usage: ``${GetDefaultPrinter} RET``
 
 Gets the currently set default printer on the current machine. The name of
-the printer is popped into the register ``RET``. If an error occurs ``0`` is
-popped into ``RET`` and the error message remains on the stack.
+the printer is returned in register ``RET``. If an error occurs ``0`` is
+returned and the error message remains on the stack.
 
 SetDefaultPrinter
 ~~~~~~~~~~~~~~~~~
@@ -216,10 +215,9 @@ SetDefaultPrinter
  Usage: ``${SetDefaultPrinter} NAME RET``
 
 Sets the default printer on the current machine to ``NAME``. If an error
-occurs ``0`` is popped into ``RET`` and the error message remains on the
-stack.
+occurs ``0`` is returned and the error message remains on the stack.
 
-NOTE: *Windows 10* will use the last printer printed to as the default
+NOTE: **Windows 10** will use the last printer printed to as the default
 printer. This can be overridden by disabling ``LegacyDefaultPrinterMode`` in
 the registry before calling ``SetDefaultPrinter``.
 
@@ -230,7 +228,7 @@ AddPrinterDriver
 
 Adds a printer driver defined by ``INIFILE``. The Driver INI file format is
 documented under `Driver INI File Documentation`_. If an error occurs ``0``
-is popped into ``RET`` and the error message remains on the stack.
+is returned and the error message remains on the stack.
 
 ConfigureRedMonPort
 ~~~~~~~~~~~~~~~~~~~
@@ -241,8 +239,8 @@ Configures a RedMon port to redirect data to the specified command. ``NAME``
 is the name of the port to configure, usually taking the form of ``RPT?``.
 ``COMMAND`` is the command to be executed when data is received by the port.
 RedMon must have already been installed through some other means before this
-function can be called. If an error occurs ``0`` is popped into ``RET`` and
-the error message remains on the stack.
+function can be called. If an error occurs ``0`` is returned and the error
+message remains on the stack.
 
 Driver INI File Documentation
 -----------------------------
@@ -314,6 +312,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 This plugin incorporates data structures from RedMon, which is Copyright (C)
-Ghostgum Software Pty Ltd., and also licensed under GPL-v3.
+Ghostgum Software Pty Ltd. and also licensed under the GNU General Public
+License.
 
 .. _`Mingw-w64 sources`: https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v5.0.0.tar.bz2/download

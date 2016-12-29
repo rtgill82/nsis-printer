@@ -196,6 +196,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 This plugin incorporates data structures from RedMon, which is Copyright (C)
-Ghostgum Software Pty Ltd., and also licensed under GPL-v3.
+Ghostgum Software Pty Ltd. and also licensed under the GNU General Public
+License.
 
 .. _`Mingw-w64 sources`: https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v5.0.0.tar.bz2/download

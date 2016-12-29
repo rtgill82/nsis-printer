@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Fri 23 Dec 2016 10:55:19 PM PST
+ * Modified: Thu 29 Dec 2016 02:35:30 AM PST
  *
  * Copyright (C) 2014-2016 Robert Gill
  *
@@ -38,8 +38,9 @@ extern "C" {
 #define DRIVER_INFO_LEVEL 3
 #define DRIVER_INFO DRIVER_INFO_3
 
-#define LPPRINTER_INFO_LEVEL 4
-#define LPPRINTER_INFO LPPRINTER_INFO_4
+#define PRINTER_INFO_LEVEL 5
+#define LPPRINTER_INFO LPPRINTER_INFO_5
+#define PRINTER_INFO PRINTER_INFO_5
 
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define BUF_SIZE (string_size * sizeof(TCHAR))
@@ -481,13 +482,12 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
   GlobalFree (buf);
 
   EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
-                LPPRINTER_INFO_LEVEL, NULL, 0, &dwNeeded,
-                &opts.dwPrintersNum);
+                PRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &opts.dwPrintersNum);
 
   opts.lpbPrinterInfo = (LPPRINTER_INFO) GlobalAlloc (GPTR, dwNeeded);
   EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
-                LPPRINTER_INFO_LEVEL, (LPBYTE) opts.lpbPrinterInfo,
-                dwNeeded, &dwNeeded, &opts.dwPrintersNum);
+                PRINTER_INFO_LEVEL, (LPBYTE) opts.lpbPrinterInfo, dwNeeded,
+                &dwNeeded, &opts.dwPrintersNum);
 
   printerName = (LPTSTR) DialogBoxParam (g_hInstance,
                                          MAKEINTRESOURCE (IDD_PRINTER_SELECT),
@@ -513,12 +513,12 @@ nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
 
   EXDLL_INIT ();
   EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
-                LPPRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &dwPrintersNum);
+                PRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &dwPrintersNum);
 
   lpbPrinterInfo = (LPPRINTER_INFO) GlobalAlloc (GPTR, dwNeeded);
   rv = EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
-                     LPPRINTER_INFO_LEVEL, (LPBYTE) lpbPrinterInfo,
-                     dwNeeded, &dwNeeded, &dwPrintersNum);
+                     PRINTER_INFO_LEVEL, (LPBYTE) lpbPrinterInfo, dwNeeded,
+                     &dwNeeded, &dwPrintersNum);
 
   if (rv != TRUE)
     {
@@ -535,6 +535,48 @@ nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
 
 cleanup:
   GlobalFree (lpbPrinterInfo);
+}
+
+void DLLEXPORT
+nsGetPrinterPort (HWND hwndParent, int string_size, LPTSTR variables,
+                  stack_t **stacktop)
+{
+  DWORD dwNeeded;
+
+  HANDLE hPrinter = NULL;
+  LPPRINTER_INFO printerInfo = NULL;
+  LPTSTR buf = NULL;
+
+  EXDLL_INIT ();
+  buf = GlobalAlloc (GPTR, BUF_SIZE);
+
+  /* Printer Name */
+  popstring (buf);
+
+  if (OpenPrinter (buf, &hPrinter, NULL) == FALSE)
+    {
+      pusherrormessage (_T ("Unable to open printer"), GetLastError ());
+      pushint (0);
+      goto cleanup;
+    }
+
+  GetPrinter (hPrinter, PRINTER_INFO_LEVEL, NULL, 0, &dwNeeded);
+  printerInfo = GlobalAlloc (GPTR, dwNeeded);
+  if (GetPrinter (hPrinter, PRINTER_INFO_LEVEL, (LPBYTE) printerInfo,
+                  dwNeeded, &dwNeeded) == FALSE)
+    {
+      pusherrormessage (_T ("Unable to get printer information"),
+                        GetLastError ());
+      pushint (0);
+      goto cleanup;
+    }
+
+  pushstring (printerInfo->pPortName);
+
+cleanup:
+  ClosePrinter (hPrinter);
+  GlobalFree (buf);
+  GlobalFree (printerInfo);
 }
 
 void DLLEXPORT

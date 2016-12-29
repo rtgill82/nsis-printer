@@ -1,6 +1,6 @@
 ;
 ; Created:  Sat 30 Apr 2016 03:26:07 PM PDT
-; Modified: Wed 28 Dec 2016 07:02:26 PM PST
+; Modified: Wed 28 Dec 2016 11:44:19 PM PST
 ;
 ; Copyright 2016 (C) Robert Gill
 ;
@@ -56,6 +56,22 @@ Printer::nsEnumPrinters
 Pop ${_RET}
 !macroend
 !define EnumPrinters "!insertmacro _EnumPrinters"
+
+;;
+; GetPrinterPort
+; ~~~~~~~~~~~~~~
+;
+;  Usage: ``${GetPrinterPort} NAME RET``
+;
+; Returns the port used by the printer ``NAME``. If ``0`` is returned then an
+; error has occurred and the error message remains on the stack.
+;
+!macro _GetPrinterPort _NAME _RET
+Push "${_NAME}"
+Printer::nsGetPrinterPort
+Pop ${_RET}
+!macroend
+!define GetPrinterPort "!insertmacro _GetPrinterPort"
 
 ;;
 ; AddPrinter

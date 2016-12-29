@@ -146,6 +146,14 @@ available printers remain on the stack to be popped off by the caller. If
 ``-1`` is returned then an error has occurred and the error message remains
 on the stack.
 
+GetPrinterPort
+~~~~~~~~~~~~~~
+
+ Usage: ``${GetPrinterPort} NAME RET``
+
+Returns the port used by the printer ``NAME``. If ``0`` is returned then an
+error has occurred and the error message remains on the stack.
+
 AddPrinter
 ~~~~~~~~~~
 

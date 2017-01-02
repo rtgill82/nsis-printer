@@ -1,6 +1,6 @@
 ;
 ; Created:  Sat 30 Apr 2016 03:26:07 PM PDT
-; Modified: Wed 28 Dec 2016 11:44:19 PM PST
+; Modified: Mon 02 Jan 2017 04:03:35 PM PST
 ;
 ; Copyright 2016 (C) Robert Gill
 ;
@@ -25,15 +25,19 @@
 ; PrinterSelectDialog
 ; ~~~~~~~~~~~~~~~~~~~
 ;
-;  Usage: ``${PrinterSelectDialog} DEFAULT_NONE RET``
+;  Usage: ``${PrinterSelectDialog} INCLUDE_NONE DEFAULT RET``
 ;
 ; Displays a dialog allowing the user to select a printer from the printers
-; available on the current machine. If ``DEFAULT_NONE`` is ``true`` then an
-; option for '``None (Printing Disabled)``' is provided and selected by
-; default.  The selected printer is returned in register ``RET``.
+; available on the current machine. If ``INCLUDE_NONE`` is ``true`` then an
+; option for '``None (Printing Disabled)``' is provided. The ``DEFAULT``
+; parameter provides the name of a printer to be selected by default. When
+; ``DEFAULT`` is an empty string (``""``) then the system default as returned
+; by ``GetDefaultPrinter`` is selected by default. The selected printer is
+; returned in register ``RET``.
 ;
-!macro _PrinterSelectDialog _DEFAULT_NONE _RET
-Push "${_DEFAULT_NONE}"
+!macro _PrinterSelectDialog _INCLUDE_NONE _DEFAULT _RET
+Push "${_DEFAULT}"
+Push "${_INCLUDE_NONE}"
 Printer::nsPrinterSelectDialog
 Pop ${_RET}
 !macroend
@@ -210,7 +214,7 @@ Pop ${_RET}
 ;
 ;  Usage: ``${AddPrinterDriver} INIFILE RET``
 ;
-; Adds a printer driver defined by ``INIFILE``. The Driver INI file format is
+; Adds a printer driver defined by ``INIFILE``. The driver INI file format is
 ; documented under `Driver INI File Documentation`_. If an error occurs ``0``
 ; is returned and the error message remains on the stack.
 ;

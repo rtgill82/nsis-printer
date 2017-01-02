@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Thu 29 Dec 2016 02:35:30 AM PST
+ * Modified: Mon 02 Jan 2017 02:17:03 PM PST
  *
  * Copyright (C) 2014-2016 Robert Gill
  *
@@ -72,7 +72,8 @@ struct printer_select_dialog_opts_s
 {
   DWORD dwPrintersNum;
   LPPRINTER_INFO lpbPrinterInfo;
-  BOOL default_none;
+  BOOL include_none;
+  LPTSTR default_printer;
 };
 
 static HINSTANCE g_hInstance;
@@ -140,6 +141,7 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   switch (msg)
     {
     case WM_INITDIALOG:
+      /* Get System default printer. */
       GetDefaultPrinter (NULL, &dwNeeded);
       defaultPrinter = GlobalAlloc (GPTR, dwNeeded);
       if (GetDefaultPrinter (defaultPrinter, &dwNeeded) == FALSE)
@@ -148,10 +150,14 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           defaultPrinter = NULL;
         }
 
+      /* Set default printer from parameter if supplied. */
       opts = (struct printer_select_dialog_opts_s *) lParam;
+      if (opts->default_printer[0] != '\0')
+        defaultPrinter = opts->default_printer;
+
       prnCombo = GetDlgItem (hwnd, IDC_PRINTER_COMBO);
       SendMessage (prnCombo, CB_RESETCONTENT, 0, 0);
-      if (opts->default_none == TRUE)
+      if (opts->include_none == TRUE)
         {
           SendMessage (prnCombo, CB_ADDSTRING, 0, (LPARAM) PRINTING_DISABLED);
           idx_offset += 1;
@@ -466,20 +472,23 @@ void DLLEXPORT
 nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t **stacktop)
 {
-  LPTSTR printerName, buf;
+  LPTSTR printerName, buf = NULL;
   DWORD dwNeeded;
   struct printer_select_dialog_opts_s opts;
 
   EXDLL_INIT ();
   ZeroMemory (&opts, sizeof (struct printer_select_dialog_opts_s));
-  opts.default_none = FALSE;
+  opts.include_none = FALSE;
 
-  /* Check "DEFAULT_NONE" parameter. */
+  /* Check "INCLUDE_NONE" parameter. */
   buf = GlobalAlloc (GPTR, BUF_SIZE);
   popstring (buf);
   if (lstrcmpi (buf, _T ("true")) == 0)
-    opts.default_none = TRUE;
-  GlobalFree (buf);
+    opts.include_none = TRUE;
+
+  /* Get "DEFAULT" parameter. */
+  popstring (buf);
+  opts.default_printer = buf;
 
   EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
                 PRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &opts.dwPrintersNum);
@@ -498,6 +507,7 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
   pushstring (printerName);
   GlobalFree (opts.lpbPrinterInfo);
   GlobalFree (printerName);
+  GlobalFree (buf);
 }
 
 void DLLEXPORT

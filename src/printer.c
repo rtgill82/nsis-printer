@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Thu 05 Jan 2017 08:30:20 PM PST
+ * Modified: Thu 05 Jan 2017 08:42:53 PM PST
  *
  * Copyright (C) 2014-2016 Robert Gill
  *
@@ -92,7 +92,8 @@ pusherrormessage (LPCTSTR msg, DWORD err)
     {
       lstrcat (errbuf, _T (": "));
       len = lstrlen (errbuf);
-      FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM, NULL, err, 0, errbuf + len,
+      FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,
+                     NULL, err, 0, errbuf + len,
                      (ERRBUF_SIZE - len) * sizeof (TCHAR), NULL);
     }
 

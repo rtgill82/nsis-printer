@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Mon 02 Jan 2017 02:17:03 PM PST
+ * Modified: Thu 05 Jan 2017 08:30:20 PM PST
  *
  * Copyright (C) 2014-2016 Robert Gill
  *
@@ -317,7 +317,6 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO *di)
   LPTSTR filename;
   size_t srcbuflen, destbuflen, filemax;
   DWORD dwNeeded;
-  BOOL rv;
 
   LPTSTR dest = NULL, src = NULL, driverdir = NULL;
   DWORD err = 0;
@@ -335,8 +334,7 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO *di)
 
   _sntprintf (src, srcbuflen, _T ("%s\\%s"), srcdir, di->pDriverPath);
   _sntprintf (dest, destbuflen, _T ("%s\\%s"), driverdir, di->pDriverPath);
-  rv = CopyFile (src, dest, FALSE);
-  if (rv == FALSE)
+  if (CopyFile (src, dest, FALSE) == FALSE)
     {
       err = GetLastError ();
       goto cleanup;
@@ -344,8 +342,7 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO *di)
 
   _sntprintf (src, srcbuflen, _T ("%s\\%s"), srcdir, di->pDataFile);
   _sntprintf (dest, destbuflen, _T ("%s\\%s"), driverdir, di->pDataFile);
-  rv = CopyFile (src, dest, FALSE);
-  if (rv == FALSE)
+  if (CopyFile (src, dest, FALSE) == FALSE)
     {
       err = GetLastError ();
       goto cleanup;
@@ -353,8 +350,7 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO *di)
 
   _sntprintf (src, srcbuflen, _T ("%s\\%s"), srcdir, di->pConfigFile);
   _sntprintf (dest, destbuflen, _T ("%s\\%s"), driverdir, di->pConfigFile);
-  rv = CopyFile (src, dest, FALSE);
-  if (rv == FALSE)
+  if (CopyFile (src, dest, FALSE) == FALSE)
     {
       err = GetLastError ();
       goto cleanup;
@@ -362,8 +358,7 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO *di)
 
   _sntprintf (src, srcbuflen, _T ("%s\\%s"), srcdir, di->pHelpFile);
   _sntprintf (dest, destbuflen, _T ("%s\\%s"), driverdir, di->pHelpFile);
-  rv = CopyFile (src, dest, FALSE);
-  if (rv == FALSE)
+  if (CopyFile (src, dest, FALSE) == FALSE)
     {
       err = GetLastError ();
       goto cleanup;
@@ -377,8 +372,7 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO *di)
         break;
       _sntprintf (src, srcbuflen, _T ("%s\\%s"), srcdir, filename);
       _sntprintf (dest, destbuflen, _T ("%s\\%s"), driverdir, filename);
-      rv = CopyFile (src, dest, FALSE);
-      if (rv == FALSE)
+      if (CopyFile (src, dest, FALSE) == FALSE)
         {
           err = GetLastError ();
           goto cleanup;
@@ -400,7 +394,6 @@ delete_driverfiles (DRIVER_INFO *di)
   LPTSTR filename;
   size_t filemax, buflen;
   DWORD dwNeeded;
-  BOOL rv;
 
   LPTSTR driverdir = NULL, filepath = NULL;
   DWORD err = 0;
@@ -414,32 +407,28 @@ delete_driverfiles (DRIVER_INFO *di)
   buflen = (_tcslen (driverdir) + filemax + 2) * sizeof (TCHAR);
   filepath = GlobalAlloc (GPTR, buflen);
   _sntprintf (filepath, buflen, _T ("%s\\%s"), driverdir, di->pDriverPath);
-  rv = DeleteFile (filepath);
-  if (rv == FALSE)
+  if (DeleteFile (filepath) == FALSE)
     {
       err = GetLastError ();
       goto cleanup;
     }
 
   _sntprintf (filepath, buflen, _T ("%s\\%s"), driverdir, di->pDataFile);
-  rv = DeleteFile (filepath);
-  if (rv == FALSE)
+  if (DeleteFile (filepath) == FALSE)
     {
       err = GetLastError ();
       goto cleanup;
     }
 
   _sntprintf (filepath, buflen, _T ("%s\\%s"), driverdir, di->pConfigFile);
-  rv = DeleteFile (filepath);
-  if (rv == FALSE)
+  if (DeleteFile (filepath) == FALSE)
     {
       err = GetLastError ();
       goto cleanup;
     }
 
   _sntprintf (filepath, buflen, _T ("%s\\%s"), driverdir, di->pHelpFile);
-  rv = DeleteFile (filepath);
-  if (rv == FALSE)
+  if (DeleteFile (filepath) == FALSE)
     {
       err = GetLastError ();
       goto cleanup;
@@ -452,8 +441,7 @@ delete_driverfiles (DRIVER_INFO *di)
       if (len == 0)
         break;
       _sntprintf (filepath, buflen, _T ("%s\\%s"), driverdir, filename);
-      rv = DeleteFile (filepath);
-      if (rv == FALSE)
+      if (DeleteFile (filepath) == FALSE)
         {
           err = GetLastError ();
           goto cleanup;
@@ -517,7 +505,6 @@ nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
   int i;
   DWORD dwNeeded, dwPrintersNum;
   DWORD err;
-  BOOL rv;
 
   LPPRINTER_INFO lpbPrinterInfo = NULL;
 
@@ -526,11 +513,9 @@ nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
                 PRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &dwPrintersNum);
 
   lpbPrinterInfo = (LPPRINTER_INFO) GlobalAlloc (GPTR, dwNeeded);
-  rv = EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
-                     PRINTER_INFO_LEVEL, (LPBYTE) lpbPrinterInfo, dwNeeded,
-                     &dwNeeded, &dwPrintersNum);
-
-  if (rv != TRUE)
+  if (EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
+                    PRINTER_INFO_LEVEL, (LPBYTE) lpbPrinterInfo, dwNeeded,
+                    &dwNeeded, &dwPrintersNum) == FALSE)
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to enumerate printers"), err);
@@ -645,7 +630,6 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
                  stack_t **stacktop)
 {
   DWORD err;
-  BOOL rv;
 
   HANDLE hPrinter = NULL;
   LPTSTR buf = NULL;
@@ -656,8 +640,7 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
 
   /* Printer Name */
   popstring (buf);
-  rv = OpenPrinter (buf, &hPrinter, &pd);
-  if (rv == FALSE)
+  if (OpenPrinter (buf, &hPrinter, &pd) == FALSE)
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open printer"), err);
@@ -665,8 +648,7 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
       goto cleanup;
     }
 
-  rv = DeletePrinter (hPrinter);
-  if (rv == FALSE)
+  if (DeletePrinter (hPrinter) == FALSE)
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to delete printer"), err);
@@ -688,7 +670,6 @@ nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
   int i;
   DWORD dwNeeded, dwPortsNum;
   DWORD err;
-  BOOL rv;
 
   PORT_INFO_1 *portinfo = NULL;
 
@@ -696,10 +677,8 @@ nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
   EnumPorts (NULL, 1, NULL, 0, &dwNeeded, &dwPortsNum);
   portinfo = GlobalAlloc (GPTR, dwNeeded);
 
-  rv =
-    EnumPorts (NULL, 1, (PBYTE) portinfo, dwNeeded, &dwNeeded, &dwPortsNum);
-
-  if (rv != TRUE)
+  if (EnumPorts (NULL, 1, (PBYTE) portinfo, dwNeeded,
+                 &dwNeeded, &dwPortsNum) == FALSE)
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to enumerate ports"), err);
@@ -720,7 +699,7 @@ void DLLEXPORT
 nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
            stack_t **stacktop)
 {
-  DWORD dwNeeded, dwStatus, rv, err;
+  DWORD dwNeeded, dwStatus, err;
 
   HANDLE iface = NULL;
   LPTSTR port_name = NULL;
@@ -738,11 +717,9 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
       goto cleanup;
     }
 
-  rv = XcvData (iface, L"AddPort", (PBYTE) port_name,
-                ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0,
-                &dwNeeded, &dwStatus);
-
-  if (rv == FALSE)
+  if (XcvData (iface, L"AddPort", (PBYTE) port_name,
+               ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0,
+               &dwNeeded, &dwStatus) == FALSE)
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add port"), err);
@@ -761,7 +738,7 @@ void DLLEXPORT
 nsDeletePort (HWND hwndParent, int string_size, LPTSTR variables,
               stack_t **stacktop)
 {
-  DWORD dwNeeded, dwStatus, rv, err;
+  DWORD dwNeeded, dwStatus, err;
 
   HANDLE iface = NULL;
   LPTSTR port_name = NULL;
@@ -779,12 +756,9 @@ nsDeletePort (HWND hwndParent, int string_size, LPTSTR variables,
       goto cleanup;
     }
 
-  rv =
-    XcvData (iface, L"DeletePort", (PBYTE) port_name,
-             ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0, &dwNeeded,
-             &dwStatus);
-
-  if (rv == FALSE)
+  if (XcvData (iface, L"DeletePort", (PBYTE) port_name,
+               ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0,
+               &dwNeeded, &dwStatus) == FALSE)
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to delete port"), err);
@@ -804,7 +778,6 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
                      stack_t **stacktop)
 {
   DWORD dwNeeded, err;
-  BOOL rv;
   LPTSTR buf = NULL;
 
   EXDLL_INIT ();
@@ -819,8 +792,7 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
       goto cleanup;
     }
 
-  rv = GetDefaultPrinter (buf, &dwNeeded);
-  if (rv == FALSE)
+  if (GetDefaultPrinter (buf, &dwNeeded))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to get default printer"), err);
@@ -839,7 +811,6 @@ nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
                      stack_t **stacktop)
 {
   DWORD err;
-  BOOL rv;
   LPTSTR buf = NULL;
 
   EXDLL_INIT ();
@@ -847,8 +818,7 @@ nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
 
   /* Printer Name */
   popstring (buf);
-  rv = SetDefaultPrinter (buf);
-  if (rv == FALSE)
+  if (SetDefaultPrinter (buf))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to set default printer"), err);
@@ -868,7 +838,6 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
 {
   DWORD err;
   DRIVER_INFO di;
-  BOOL rv;
   LPTSTR inifile = NULL, driverdir = NULL;
 
   EXDLL_INIT ();
@@ -888,8 +857,7 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
       goto cleanup;
     }
 
-  rv = AddPrinterDriver (NULL, DRIVER_INFO_LEVEL, (LPBYTE) &di);
-  if (rv == FALSE)
+  if (AddPrinterDriver (NULL, DRIVER_INFO_LEVEL, (LPBYTE) &di) == FALSE)
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add printer driver"), err);
@@ -911,7 +879,6 @@ nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
                        stack_t **stacktop)
 {
   DWORD dwNeeded, dwStatus, err;
-  BOOL rv;
   RECONFIG config;
   HANDLE iface = NULL;
   LPTSTR buf = NULL;
@@ -946,11 +913,8 @@ nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
   lstrcpy (config.szCommand, buf);
   lstrcpy (config.szDescription, _T ("Redirected Port"));
 
-  rv =
-    XcvData (iface, L"SetConfig", (PBYTE) (&config), sizeof (RECONFIG),
-             NULL, 0, &dwNeeded, &dwStatus);
-
-  if (rv == FALSE)
+  if (XcvData (iface, L"SetConfig", (PBYTE) (&config), sizeof (RECONFIG),
+               NULL, 0, &dwNeeded, &dwStatus))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to configure port"), err);

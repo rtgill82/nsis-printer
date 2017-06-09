@@ -4,8 +4,8 @@ NSIS Printer
 The NSIS Printer plugin allows you to perform printer management from an NSIS
 installer. It supports functionality such as enumerating printers, adding a new
 printer, getting or setting the default printer, selecting a printer from the
-list of available printers, and adding a redirected printer port (RedMon 1.9
-required).
+list of available printers, and adding a redirected printer port (`RedMon 1.9
+<http://pages.cs.wisc.edu/~ghost/redmon/>`_ required).
 
 Requirements
 ------------
@@ -61,7 +61,9 @@ Then build the mingw64 runtime using the following commands from within the
 same directory:
 
  ``./configure --host=i686-w64-mingw32 --prefix=/opt/mingw-w64-v5.0.0``
+
  ``make``
+
  ``make install``
 
 After the patched mingw-w64 runtime has been installed, return to the

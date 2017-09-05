@@ -1,6 +1,6 @@
 ;
 ; Created:  Sat 30 Apr 2016 03:26:07 PM PDT
-; Modified: Mon 02 Jan 2017 04:03:35 PM PST
+; Modified: Tue 05 Sep 2017 12:16:17 AM PDT
 ;
 ; Copyright 2016 (C) Robert Gill
 ;
@@ -32,8 +32,8 @@
 ; option for '``None (Printing Disabled)``' is provided. The ``DEFAULT``
 ; parameter provides the name of a printer to be selected by default. When
 ; ``DEFAULT`` is an empty string (``""``) then the system default as returned
-; by ``GetDefaultPrinter`` is selected by default. The selected printer is
-; returned in register ``RET``.
+; by ``GetDefaultPrinter`` is selected. The selected printer is returned in
+; register ``RET``.
 ;
 !macro _PrinterSelectDialog _INCLUDE_NONE _DEFAULT _RET
 Push "${_DEFAULT}"

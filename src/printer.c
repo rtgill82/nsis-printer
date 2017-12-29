@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Fri 29 Dec 2017 01:24:11 PM PST
+ * Modified: Fri 29 Dec 2017 01:59:36 PM PST
  *
  * Copyright (C) 2014-2016 Robert Gill
  *
@@ -145,7 +145,7 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       /* Get System default printer. */
       GetDefaultPrinter (NULL, &dwNeeded);
       defaultPrinter = GlobalAlloc (GPTR, dwNeeded);
-      if (GetDefaultPrinter (defaultPrinter, &dwNeeded) == FALSE)
+      if (!GetDefaultPrinter (defaultPrinter, &dwNeeded))
         {
           GlobalFree (defaultPrinter);
           defaultPrinter = NULL;
@@ -335,7 +335,7 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO *di)
 
   _sntprintf (src, srcbuflen, _T ("%s\\%s"), srcdir, di->pDriverPath);
   _sntprintf (dest, destbuflen, _T ("%s\\%s"), driverdir, di->pDriverPath);
-  if (CopyFile (src, dest, FALSE) == FALSE)
+  if (!CopyFile (src, dest, FALSE))
     {
       err = GetLastError ();
       goto cleanup;
@@ -343,7 +343,7 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO *di)
 
   _sntprintf (src, srcbuflen, _T ("%s\\%s"), srcdir, di->pDataFile);
   _sntprintf (dest, destbuflen, _T ("%s\\%s"), driverdir, di->pDataFile);
-  if (CopyFile (src, dest, FALSE) == FALSE)
+  if (!CopyFile (src, dest, FALSE))
     {
       err = GetLastError ();
       goto cleanup;
@@ -351,7 +351,7 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO *di)
 
   _sntprintf (src, srcbuflen, _T ("%s\\%s"), srcdir, di->pConfigFile);
   _sntprintf (dest, destbuflen, _T ("%s\\%s"), driverdir, di->pConfigFile);
-  if (CopyFile (src, dest, FALSE) == FALSE)
+  if (!CopyFile (src, dest, FALSE))
     {
       err = GetLastError ();
       goto cleanup;
@@ -359,7 +359,7 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO *di)
 
   _sntprintf (src, srcbuflen, _T ("%s\\%s"), srcdir, di->pHelpFile);
   _sntprintf (dest, destbuflen, _T ("%s\\%s"), driverdir, di->pHelpFile);
-  if (CopyFile (src, dest, FALSE) == FALSE)
+  if (!CopyFile (src, dest, FALSE))
     {
       err = GetLastError ();
       goto cleanup;
@@ -373,7 +373,7 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO *di)
         break;
       _sntprintf (src, srcbuflen, _T ("%s\\%s"), srcdir, filename);
       _sntprintf (dest, destbuflen, _T ("%s\\%s"), driverdir, filename);
-      if (CopyFile (src, dest, FALSE) == FALSE)
+      if (!CopyFile (src, dest, FALSE))
         {
           err = GetLastError ();
           goto cleanup;
@@ -408,28 +408,28 @@ delete_driverfiles (DRIVER_INFO *di)
   buflen = (_tcslen (driverdir) + filemax + 2) * sizeof (TCHAR);
   filepath = GlobalAlloc (GPTR, buflen);
   _sntprintf (filepath, buflen, _T ("%s\\%s"), driverdir, di->pDriverPath);
-  if (DeleteFile (filepath) == FALSE)
+  if (!DeleteFile (filepath))
     {
       err = GetLastError ();
       goto cleanup;
     }
 
   _sntprintf (filepath, buflen, _T ("%s\\%s"), driverdir, di->pDataFile);
-  if (DeleteFile (filepath) == FALSE)
+  if (!DeleteFile (filepath))
     {
       err = GetLastError ();
       goto cleanup;
     }
 
   _sntprintf (filepath, buflen, _T ("%s\\%s"), driverdir, di->pConfigFile);
-  if (DeleteFile (filepath) == FALSE)
+  if (!DeleteFile (filepath))
     {
       err = GetLastError ();
       goto cleanup;
     }
 
   _sntprintf (filepath, buflen, _T ("%s\\%s"), driverdir, di->pHelpFile);
-  if (DeleteFile (filepath) == FALSE)
+  if (!DeleteFile (filepath))
     {
       err = GetLastError ();
       goto cleanup;
@@ -442,7 +442,7 @@ delete_driverfiles (DRIVER_INFO *di)
       if (len == 0)
         break;
       _sntprintf (filepath, buflen, _T ("%s\\%s"), driverdir, filename);
-      if (DeleteFile (filepath) == FALSE)
+      if (!DeleteFile (filepath))
         {
           err = GetLastError ();
           goto cleanup;
@@ -514,9 +514,9 @@ nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
                 PRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &dwPrintersNum);
 
   lpbPrinterInfo = (LPPRINTER_INFO) GlobalAlloc (GPTR, dwNeeded);
-  if (EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
-                    PRINTER_INFO_LEVEL, (LPBYTE) lpbPrinterInfo, dwNeeded,
-                    &dwNeeded, &dwPrintersNum) == FALSE)
+  if (!EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
+                     PRINTER_INFO_LEVEL, (LPBYTE) lpbPrinterInfo, dwNeeded,
+                     &dwNeeded, &dwPrintersNum))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to enumerate printers"), err);
@@ -549,7 +549,7 @@ nsGetPrinterPort (HWND hwndParent, int string_size, LPTSTR variables,
   /* Printer Name */
   popstring (buf);
 
-  if (OpenPrinter (buf, &hPrinter, NULL) == FALSE)
+  if (!OpenPrinter (buf, &hPrinter, NULL))
     {
       pusherrormessage (_T ("Unable to open printer"), GetLastError ());
       pushint (0);
@@ -558,8 +558,8 @@ nsGetPrinterPort (HWND hwndParent, int string_size, LPTSTR variables,
 
   GetPrinter (hPrinter, PRINTER_INFO_LEVEL, NULL, 0, &dwNeeded);
   printerInfo = GlobalAlloc (GPTR, dwNeeded);
-  if (GetPrinter (hPrinter, PRINTER_INFO_LEVEL, (LPBYTE) printerInfo,
-                  dwNeeded, &dwNeeded) == FALSE)
+  if (!GetPrinter (hPrinter, PRINTER_INFO_LEVEL, (LPBYTE) printerInfo,
+                   dwNeeded, &dwNeeded))
     {
       pusherrormessage (_T ("Unable to get printer information"),
                         GetLastError ());
@@ -641,7 +641,7 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
 
   /* Printer Name */
   popstring (buf);
-  if (OpenPrinter (buf, &hPrinter, &pd) == FALSE)
+  if (!OpenPrinter (buf, &hPrinter, &pd))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open printer"), err);
@@ -649,7 +649,7 @@ nsDeletePrinter (HWND hwndParent, int string_size, LPTSTR variables,
       goto cleanup;
     }
 
-  if (DeletePrinter (hPrinter) == FALSE)
+  if (!DeletePrinter (hPrinter))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to delete printer"), err);
@@ -678,8 +678,7 @@ nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
   EnumPorts (NULL, 1, NULL, 0, &dwNeeded, &dwPortsNum);
   portinfo = GlobalAlloc (GPTR, dwNeeded);
 
-  if (EnumPorts (NULL, 1, (PBYTE) portinfo, dwNeeded,
-                 &dwNeeded, &dwPortsNum) == FALSE)
+  if (!EnumPorts (NULL, 1, (PBYTE) portinfo, dwNeeded, &dwNeeded, &dwPortsNum))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to enumerate ports"), err);
@@ -710,7 +709,7 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
   port_name = GlobalAlloc (GPTR, BUF_SIZE);
 
   popstring (port_name);        /* Pop port name */
-  if (OpenPrinter (_T (",XcvMonitor Redirected Port"), &iface, &pd) == FALSE)
+  if (!OpenPrinter (_T (",XcvMonitor Redirected Port"), &iface, &pd))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open Xcv interface"), err);
@@ -749,7 +748,7 @@ nsDeletePort (HWND hwndParent, int string_size, LPTSTR variables,
   port_name = GlobalAlloc (GPTR, BUF_SIZE);
 
   popstring (port_name);        /* Pop port name */
-  if (OpenPrinter (_T (",XcvMonitor Redirected Port"), &iface, &pd) == FALSE)
+  if (!OpenPrinter (_T (",XcvMonitor Redirected Port"), &iface, &pd))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open Xcv interface"), err);
@@ -858,7 +857,7 @@ nsAddPrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
       goto cleanup;
     }
 
-  if (AddPrinterDriver (NULL, DRIVER_INFO_LEVEL, (LPBYTE) &di) == FALSE)
+  if (!AddPrinterDriver (NULL, DRIVER_INFO_LEVEL, (LPBYTE) &di))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add printer driver"), err);
@@ -901,7 +900,7 @@ nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
   popstring (buf);
   lstrcpy (config.szPortName, buf);
 
-  if (OpenPrinter (_T (",XcvMonitor Redirected Port"), &iface, &pd) == FALSE)
+  if (!OpenPrinter (_T (",XcvMonitor Redirected Port"), &iface, &pd))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open Xcv interface"), err);

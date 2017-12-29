@@ -1,8 +1,8 @@
 #
 # Created:  Fri 12 Dec 2014 07:37:55 PM PST
-# Modified: Wed 21 Dec 2016 05:52:46 PM PST
+# Modified: Fri 29 Dec 2017 12:47:26 PM PST
 #
-# Copyright 2016 (C) Robert Gill
+# Copyright 2016,2017 (C) Robert Gill
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,12 +24,12 @@ HOST = i686-w64-mingw32
 CC = $(CCPATH)/$(HOST)-gcc
 RC = $(CCPATH)/$(HOST)-windres
 
-CFLAGS = -march=i686 -fomit-frame-pointer -ftracer -Os -Wall
+CFLAGS = -Wall -march=i686 -Os -fomit-frame-pointer
 EXTRA_LDFLAGS := $(LDFLAGS)
 override LDFLAGS := -s $(EXTRA_LDFLAGS)
 
 ifeq ($(DEBUG),true)
-CFLAGS  = -march=i686 -g3 -Og -Wall $(EXTRA_CFLAGS)
+CFLAGS  = -Wall -march=i686 -Og -g3 $(EXTRA_CFLAGS)
 override LDFLAGS  =
 override LDFLAGS := $(EXTRA_LDFLAGS)
 endif

@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Thu 05 Jan 2017 08:42:53 PM PST
+ * Modified: Fri 29 Dec 2017 01:06:18 PM PST
  *
  * Copyright (C) 2014-2016 Robert Gill
  *
@@ -793,7 +793,7 @@ nsGetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
       goto cleanup;
     }
 
-  if (GetDefaultPrinter (buf, &dwNeeded))
+  if (!GetDefaultPrinter (buf, &dwNeeded))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to get default printer"), err);

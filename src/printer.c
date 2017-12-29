@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Fri 29 Dec 2017 01:06:18 PM PST
+ * Modified: Fri 29 Dec 2017 01:24:11 PM PST
  *
  * Copyright (C) 2014-2016 Robert Gill
  *
@@ -718,9 +718,9 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
       goto cleanup;
     }
 
-  if (XcvData (iface, L"AddPort", (PBYTE) port_name,
-               ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0,
-               &dwNeeded, &dwStatus) == FALSE)
+  if (!XcvData (iface, L"AddPort", (PBYTE) port_name,
+                ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0,
+                &dwNeeded, &dwStatus))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to add port"), err);
@@ -757,9 +757,9 @@ nsDeletePort (HWND hwndParent, int string_size, LPTSTR variables,
       goto cleanup;
     }
 
-  if (XcvData (iface, L"DeletePort", (PBYTE) port_name,
-               ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0,
-               &dwNeeded, &dwStatus) == FALSE)
+  if (!XcvData (iface, L"DeletePort", (PBYTE) port_name,
+                ((lstrlen (port_name) + 1) * sizeof (TCHAR)), NULL, 0,
+                &dwNeeded, &dwStatus))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to delete port"), err);
@@ -914,8 +914,8 @@ nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
   lstrcpy (config.szCommand, buf);
   lstrcpy (config.szDescription, _T ("Redirected Port"));
 
-  if (XcvData (iface, L"SetConfig", (PBYTE) (&config), sizeof (RECONFIG),
-               NULL, 0, &dwNeeded, &dwStatus))
+  if (!XcvData (iface, L"SetConfig", (PBYTE) (&config), sizeof (RECONFIG),
+                NULL, 0, &dwNeeded, &dwStatus))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to configure port"), err);

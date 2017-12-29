@@ -137,8 +137,8 @@ available on the current machine. If ``INCLUDE_NONE`` is ``true`` then an
 option for '``None (Printing Disabled)``' is provided. The ``DEFAULT``
 parameter provides the name of a printer to be selected by default. When
 ``DEFAULT`` is an empty string (``""``) then the system default as returned
-by ``GetDefaultPrinter`` is selected by default. The selected printer is
-returned in register ``RET``.
+by ``GetDefaultPrinter`` is selected. The selected printer is returned in
+register ``RET``.
 
 EnumPrinters
 ~~~~~~~~~~~~

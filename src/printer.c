@@ -1,8 +1,8 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Fri 29 Dec 2017 01:59:36 PM PST
+ * Modified: Mon 19 Feb 2018 05:58:22 PM PST
  *
- * Copyright (C) 2014-2016 Robert Gill
+ * Copyright (C) 2014-2018 Robert Gill
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -144,7 +144,7 @@ printer_select_dialog_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_INITDIALOG:
       /* Get System default printer. */
       GetDefaultPrinter (NULL, &dwNeeded);
-      defaultPrinter = GlobalAlloc (GPTR, dwNeeded);
+      defaultPrinter = GlobalAlloc (GPTR, dwNeeded * sizeof (TCHAR));
       if (!GetDefaultPrinter (defaultPrinter, &dwNeeded))
         {
           GlobalFree (defaultPrinter);
@@ -323,7 +323,7 @@ copy_driverfiles (LPTSTR srcdir, DRIVER_INFO *di)
   DWORD err = 0;
 
   GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, NULL, 0, &dwNeeded);
-  driverdir = GlobalAlloc (GPTR, dwNeeded);
+  driverdir = GlobalAlloc (GPTR, dwNeeded * sizeof (TCHAR));
   GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, (LPBYTE) driverdir,
                              dwNeeded, &dwNeeded);
 
@@ -400,7 +400,7 @@ delete_driverfiles (DRIVER_INFO *di)
   DWORD err = 0;
 
   GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, NULL, 0, &dwNeeded);
-  driverdir = GlobalAlloc (GPTR, dwNeeded);
+  driverdir = GlobalAlloc (GPTR, dwNeeded * sizeof (TCHAR));
   GetPrinterDriverDirectory (NULL, di->pEnvironment, 1, (LPBYTE) driverdir,
                              dwNeeded, &dwNeeded);
 
@@ -482,7 +482,8 @@ nsPrinterSelectDialog (HWND hwndParent, int string_size, LPTSTR variables,
   EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
                 PRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &opts.dwPrintersNum);
 
-  opts.lpbPrinterInfo = (LPPRINTER_INFO) GlobalAlloc (GPTR, dwNeeded);
+  opts.lpbPrinterInfo = (LPPRINTER_INFO)
+    GlobalAlloc (GPTR, dwNeeded *sizeof (TCHAR));
   EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
                 PRINTER_INFO_LEVEL, (LPBYTE) opts.lpbPrinterInfo, dwNeeded,
                 &dwNeeded, &opts.dwPrintersNum);
@@ -513,7 +514,8 @@ nsEnumPrinters (HWND hwndParent, int string_size, LPTSTR variables,
   EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
                 PRINTER_INFO_LEVEL, NULL, 0, &dwNeeded, &dwPrintersNum);
 
-  lpbPrinterInfo = (LPPRINTER_INFO) GlobalAlloc (GPTR, dwNeeded);
+  lpbPrinterInfo = (LPPRINTER_INFO)
+    GlobalAlloc (GPTR, dwNeeded * sizeof (TCHAR));
   if (!EnumPrinters (PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL,
                      PRINTER_INFO_LEVEL, (LPBYTE) lpbPrinterInfo, dwNeeded,
                      &dwNeeded, &dwPrintersNum))
@@ -557,7 +559,7 @@ nsGetPrinterPort (HWND hwndParent, int string_size, LPTSTR variables,
     }
 
   GetPrinter (hPrinter, PRINTER_INFO_LEVEL, NULL, 0, &dwNeeded);
-  printerInfo = GlobalAlloc (GPTR, dwNeeded);
+  printerInfo = GlobalAlloc (GPTR, dwNeeded * sizeof (TCHAR));
   if (!GetPrinter (hPrinter, PRINTER_INFO_LEVEL, (LPBYTE) printerInfo,
                    dwNeeded, &dwNeeded))
     {
@@ -676,7 +678,7 @@ nsEnumPorts (HWND hwndParent, int string_size, LPTSTR variables,
 
   EXDLL_INIT ();
   EnumPorts (NULL, 1, NULL, 0, &dwNeeded, &dwPortsNum);
-  portinfo = GlobalAlloc (GPTR, dwNeeded);
+  portinfo = GlobalAlloc (GPTR, dwNeeded * sizeof (TCHAR));
 
   if (!EnumPorts (NULL, 1, (PBYTE) portinfo, dwNeeded, &dwNeeded, &dwPortsNum))
     {

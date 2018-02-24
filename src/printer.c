@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Fri 23 Feb 2018 08:04:50 PM PST
+ * Modified: Sat 24 Feb 2018 02:33:57 PM PST
  *
  * Copyright (C) 2014-2018 Robert Gill
  *
@@ -825,7 +825,7 @@ nsSetDefaultPrinter (HWND hwndParent, int string_size, LPTSTR variables,
 
   /* Printer Name */
   popstring (buf);
-  if (SetDefaultPrinter (buf))
+  if (!SetDefaultPrinter (buf))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to set default printer"), err);

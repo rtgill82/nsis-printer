@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Mon 19 Feb 2018 05:58:22 PM PST
+ * Modified: Fri 23 Feb 2018 08:04:50 PM PST
  *
  * Copyright (C) 2014-2018 Robert Gill
  *
@@ -43,6 +43,11 @@ extern "C" {
 #define PRINTER_INFO PRINTER_INFO_5
 
 #define MAX(a,b) (((a)>(b))?(a):(b))
+
+/*
+ * string_size is a parameter passed to NSIS plugin functions,
+ * the BUF_SIZE macro should only be used within those.
+ */
 #define BUF_SIZE (string_size * sizeof(TCHAR))
 
 /*

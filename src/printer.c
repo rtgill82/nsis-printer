@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sat 24 Feb 2018 02:33:57 PM PST
+ * Modified: Sat 24 Feb 2018 02:46:59 PM PST
  *
  * Copyright (C) 2014-2018 Robert Gill
  *
@@ -237,9 +237,6 @@ parse_depfiles (LPTSTR str)
     }
 
   _tcscpy (pmultisz, _T (""));
-  pmultisz += 2;
-  _tcscpy (pmultisz, _T (""));
-
   return multisz;
 }
 

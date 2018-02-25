@@ -1,6 +1,6 @@
 #
 # Created:  Sat 13 Dec 2014 05:07:48 PM PST
-# Modified: Fri 23 Dec 2016 07:18:44 PM PST
+# Modified: Sat 24 Feb 2018 05:34:31 PM PST
 #
 # Copyright 2016 (C) Robert Gill
 #
@@ -19,7 +19,7 @@
 #
 
 PACKAGE = nsisprinter
-PACKAGE_VERSION = 1.0.0
+PACKAGE_VERSION = 1.0.1
 
 DISTFILE = $(PACKAGE)-$(PACKAGE_VERSION).zip
 DISTDIR = ./$(PACKAGE)-$(PACKAGE_VERSION)

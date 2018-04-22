@@ -1,6 +1,6 @@
 ;
 ; Created:  Sat 30 Apr 2016 03:26:07 PM PDT
-; Modified: Tue 05 Sep 2017 12:16:17 AM PDT
+; Modified: Sat 21 Apr 2018 07:21:00 PM PDT
 ;
 ; Copyright 2016 (C) Robert Gill
 ;
@@ -137,19 +137,16 @@ Pop ${_RET}
 ; AddPort
 ; ~~~~~~~
 ;
-;  Usage: ``${AddPort} NAME RET``
+;  Usage: ``${AddPort} PORTNAME XCVNAME RET``
 ;
-; Adds a new port on the current machine. The port will be named ``NAME``. A
-; return value is returned in register ``RET``. It will be ``1`` on success or
-; ``0`` on failure. If a failure occurs then an error message remains on the
-; stack.
+; Adds a new port using the XcvMonitor interface ``XCVNAME``. The port will be
+; named ``PORTNAME``. A return value is returned in register ``RET``. It will
+; be ``1`` on success or ``0`` on failure. If a failure occurs then an error
+; message remains on the stack.
 ;
-; NOTE: I've only been able to successfully add RedMon redirect (``RPT?``)
-; ports. More general ports (``LPT?``, ``COM?``, etc.) all seem to fail. This
-; function is most useful when installing and configuring RedMon.
-;
-!macro _AddPort _NAME _RET
-Push "${_NAME}"
+!macro _AddPort _PORTNAME _XCVNAME _RET
+Push "${_XCVNAME}"
+Push "${_PORTNAME}"
 Printer::nsAddPort
 Pop ${_RET}
 !macroend
@@ -159,18 +156,94 @@ Pop ${_RET}
 ; DeletePort
 ; ~~~~~~~~~~
 ;
-;  Usage: ``${DeletePort} NAME RET``
+;  Usage: ``${DeletePort} PORTNAME XCVNAME RET``
 ;
-; Deletes the port ``NAME`` on the current machine. A return value is returned
-; in register ``RET``. It will be ``1`` on success or ``0`` on failure. If a
-; failure occurs then an error message remains on the stack.
+; Deletes the port ``PORTNAME`` using the XcvMonitor interface ``XCVNAME``.
+; A return value is returned in register ``RET``. It will be ``1`` on success
+; or ``0`` on failure. If a failure occurs then an error message remains on the
+; stack.
 ;
-!macro _DeletePort _NAME _RET
-Push "${_NAME}"
+!macro _DeletePort _PORTNAME _XCVNAME _RET
+Push "${_XCVNAME}"
+Push "${_PORTNAME}"
 Printer::nsDeletePort
 Pop ${_RET}
 !macroend
 !define DeletePort "!insertmacro _DeletePort"
+
+;;
+; AddLocalPort
+; ~~~~~~~~~~~~
+;
+;  Usage: ``${AddLocalPort} PORTNAME RET``
+;
+; Adds a new port to the local machine. The port will be named ``PORTNAME``.
+; A return value is returned in register ``RET``. It will be ``1`` on success
+; or ``0`` on failure. If a failure occurs then an error message remains on the
+; stack.
+;
+!macro _AddLocalPort _PORTNAME _RET
+Push ",XcvMonitor Local Port"
+Push "${_PORTNAME}"
+Printer::nsAddPort
+Pop ${_RET}
+!macroend
+!define AddLocalPort "!insertmacro _AddLocalPort"
+
+;;
+; DeleteLocalPort
+; ~~~~~~~~~~~~
+;
+;  Usage: ``${DeleteLocalPort} PORTNAME RET``
+;
+; Deletes the local port ``PORTNAME``. A return value is returned in register
+; ``RET``. It will be ``1`` on success or ``0`` on failure. If a failure occurs
+; then an error message remains on the stack.
+;
+!macro _DeleteLocalPort _PORTNAME _RET
+Push ",XcvMonitor Local Port"
+Push "${_PORTNAME}"
+Printer::nsDeletePort
+Pop ${_RET}
+!macroend
+!define DeleteLocalPort "!insertmacro _DeleteLocalPort"
+
+;;
+; AddRedirectedPort
+; ~~~~~~~~~~~~
+;
+;  Usage: ``${AddRedirectedPort} PORTNAME RET``
+;
+; Adds a new redirected port to the local machine. The port will be named
+; ``PORTNAME``. RedMon 1.9 is required. A return value is returned in register
+; ``RET``. It will be ``1`` on success or ``0`` on failure. If a failure occurs
+; then an error message remains on the stack.
+;
+!macro _AddRedirectedPort _PORTNAME _RET
+Push ",XcvMonitor Redirected Port"
+Push "${_PORTNAME}"
+Printer::nsAddPort
+Pop ${_RET}
+!macroend
+!define AddRedirectedPort "!insertmacro _AddRedirectedPort"
+
+;;
+; DeleteRedirectedPort
+; ~~~~~~~~~~~~
+;
+;  Usage: ``${DeleteRedirectedPort} PORTNAME RET``
+;
+; Deletes the redirected port ``PORTNAME``. Redmon 1.9 is required. A return
+; value is returned in register ``RET``. It will be ``1`` on success or ``0``
+; on failure. If a failure occurs then an error message remains on the stack.
+;
+!macro _DeleteRedirectedPort _PORTNAME _RET
+Push ",XcvMonitor Redirected Port"
+Push "${_PORTNAME}"
+Printer::nsDeletePort
+Pop ${_RET}
+!macroend
+!define DeleteRedirectedPort "!insertmacro _DeleteRedirectedPort"
 
 ;;
 ; GetDefaultPrinter
@@ -226,24 +299,24 @@ Pop ${_RET}
 !define AddPrinterDriver "!insertmacro _AddPrinterDriver"
 
 ;;
-; ConfigureRedMonPort
+; ConfigureRedirectedPort
 ; ~~~~~~~~~~~~~~~~~~~
 ;
-;  Usage: ``${ConfigureRedMonPort} NAME COMMAND RET``
+;  Usage: ``${ConfigureRedirectedPort} NAME COMMAND RET``
 ;
-; Configures a RedMon port to redirect data to the specified command. ``NAME``
-; is the name of the port to configure, usually taking the form of ``RPT?``.
-; ``COMMAND`` is the command to be executed when data is received by the port.
-; RedMon must have already been installed through some other means before this
-; function can be called. If an error occurs ``0`` is returned and the error
-; message remains on the stack.
+; Configures a redirected port to redirect data to the specified command.
+; ``NAME`` is the name of the port to configure, usually taking the form of
+; ``RPT?``.  ``COMMAND`` is the command to be executed when data is received by
+; the port. RedMon must have already been installed through some other means
+; before this function can be called. If an error occurs ``0`` is returned and
+; the error message remains on the stack.
 ;
-!macro _ConfigureRedMonPort _NAME _COMMAND _RET
+!macro _ConfigureRedirectedPort _NAME _COMMAND _RET
 Push "${_COMMAND}"
 Push "${_NAME}"
-Printer::nsConfigureRedMonPort
+Printer::nsConfigureRedirectedPort
 Pop ${_RET}
 !macroend
-!define ConfigureRedMonPort "!insertmacro _ConfigureRedMonPort"
+!define ConfigureRedirectedPort "!insertmacro _ConfigureRedirectedPort"
 
 !endif ; PRINTER_NSH

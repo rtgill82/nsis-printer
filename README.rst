@@ -193,25 +193,60 @@ then an error has occurred and the error message remains on the stack.
 AddPort
 ~~~~~~~
 
- Usage: ``${AddPort} NAME RET``
+ Usage: ``${AddPort} PORTNAME XCVNAME RET``
 
-Adds a new port on the current machine. The port will be named ``NAME``. A
-return value is returned in register ``RET``. It will be ``1`` on success or
-``0`` on failure. If a failure occurs then an error message remains on the
-stack.
-
-NOTE: I've only been able to successfully add RedMon redirect (``RPT?``)
-ports. More general ports (``LPT?``, ``COM?``, etc.) all seem to fail. This
-function is most useful when installing and configuring RedMon.
+Adds a new port using the XcvMonitor interface ``XCVNAME``. The port will be
+named ``PORTNAME``. A return value is returned in register ``RET``. It will
+be ``1`` on success or ``0`` on failure. If a failure occurs then an error
+message remains on the stack.
 
 DeletePort
 ~~~~~~~~~~
 
- Usage: ``${DeletePort} NAME RET``
+ Usage: ``${DeletePort} PORTNAME XCVNAME RET``
 
-Deletes the port ``NAME`` on the current machine. A return value is returned
-in register ``RET``. It will be ``1`` on success or ``0`` on failure. If a
-failure occurs then an error message remains on the stack.
+Deletes the port ``PORTNAME`` using the XcvMonitor interface ``XCVNAME``.
+A return value is returned in register ``RET``. It will be ``1`` on success
+or ``0`` on failure. If a failure occurs then an error message remains on the
+stack.
+
+AddLocalPort
+~~~~~~~~~~~~
+
+ Usage: ``${AddLocalPort} PORTNAME RET``
+
+Adds a new port to the local machine. The port will be named ``PORTNAME``.
+A return value is returned in register ``RET``. It will be ``1`` on success
+or ``0`` on failure. If a failure occurs then an error message remains on the
+stack.
+
+DeleteLocalPort
+~~~~~~~~~~~~
+
+ Usage: ``${DeleteLocalPort} PORTNAME RET``
+
+Deletes the local port ``PORTNAME``. A return value is returned in register
+``RET``. It will be ``1`` on success or ``0`` on failure. If a failure occurs
+then an error message remains on the stack.
+
+AddRedirectedPort
+~~~~~~~~~~~~
+
+ Usage: ``${AddRedirectedPort} PORTNAME RET``
+
+Adds a new redirected port to the local machine. The port will be named
+``PORTNAME``. RedMon 1.9 is required. A return value is returned in register
+``RET``. It will be ``1`` on success or ``0`` on failure. If a failure occurs
+then an error message remains on the stack.
+
+DeleteRedirectedPort
+~~~~~~~~~~~~
+
+ Usage: ``${DeleteRedirectedPort} PORTNAME RET``
+
+Deletes the redirected port ``PORTNAME``. Redmon 1.9 is required. A return
+value is returned in register ``RET``. It will be ``1`` on success or ``0``
+on failure. If a failure occurs then an error message remains on the stack.
 
 GetDefaultPrinter
 ~~~~~~~~~~~~~~~~~
@@ -243,17 +278,17 @@ Adds a printer driver defined by ``INIFILE``. The driver INI file format is
 documented under `Driver INI File Documentation`_. If an error occurs ``0``
 is returned and the error message remains on the stack.
 
-ConfigureRedMonPort
+ConfigureRedirectedPort
 ~~~~~~~~~~~~~~~~~~~
 
- Usage: ``${ConfigureRedMonPort} NAME COMMAND RET``
+ Usage: ``${ConfigureRedirectedPort} NAME COMMAND RET``
 
-Configures a RedMon port to redirect data to the specified command. ``NAME``
-is the name of the port to configure, usually taking the form of ``RPT?``.
-``COMMAND`` is the command to be executed when data is received by the port.
-RedMon must have already been installed through some other means before this
-function can be called. If an error occurs ``0`` is returned and the error
-message remains on the stack.
+Configures a redirected port to redirect data to the specified command.
+``NAME`` is the name of the port to configure, usually taking the form of
+``RPT?``.  ``COMMAND`` is the command to be executed when data is received by
+the port. RedMon must have already been installed through some other means
+before this function can be called. If an error occurs ``0`` is returned and
+the error message remains on the stack.
 
 Driver INI File Documentation
 -----------------------------

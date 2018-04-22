@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sat 24 Feb 2018 02:46:59 PM PST
+ * Modified: Sat 21 Apr 2018 07:21:54 PM PDT
  *
  * Copyright (C) 2014-2018 Robert Gill
  *
@@ -707,13 +707,16 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
 
   HANDLE iface = NULL;
   LPTSTR port_name = NULL;
+  LPTSTR xcv_name = NULL;
   PRINTER_DEFAULTS pd = { NULL, NULL, SERVER_ACCESS_ADMINISTER };
 
   EXDLL_INIT ();
   port_name = GlobalAlloc (GPTR, BUF_SIZE);
+  xcv_name = GlobalAlloc (GPTR, BUF_SIZE);
 
   popstring (port_name);        /* Pop port name */
-  if (!OpenPrinter (_T (",XcvMonitor Redirected Port"), &iface, &pd))
+  popstring (xcv_name);
+  if (!OpenPrinter (xcv_name, &iface, &pd))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open Xcv interface"), err);
@@ -736,6 +739,7 @@ nsAddPort (HWND hwndParent, int string_size, LPTSTR variables,
 cleanup:
   ClosePrinter (iface);
   GlobalFree (port_name);
+  GlobalFree (xcv_name);
 }
 
 void DLLEXPORT
@@ -746,13 +750,16 @@ nsDeletePort (HWND hwndParent, int string_size, LPTSTR variables,
 
   HANDLE iface = NULL;
   LPTSTR port_name = NULL;
+  LPTSTR xcv_name = NULL;
   PRINTER_DEFAULTS pd = { NULL, NULL, SERVER_ACCESS_ADMINISTER };
 
   EXDLL_INIT ();
   port_name = GlobalAlloc (GPTR, BUF_SIZE);
+  xcv_name = GlobalAlloc (GPTR, BUF_SIZE);
 
   popstring (port_name);        /* Pop port name */
-  if (!OpenPrinter (_T (",XcvMonitor Redirected Port"), &iface, &pd))
+  popstring (xcv_name);
+  if (!OpenPrinter (xcv_name, &iface, &pd))
     {
       err = GetLastError ();
       pusherrormessage (_T ("Unable to open Xcv interface"), err);
@@ -775,6 +782,7 @@ nsDeletePort (HWND hwndParent, int string_size, LPTSTR variables,
 cleanup:
   ClosePrinter (iface);
   GlobalFree (port_name);
+  GlobalFree (xcv_name);
 }
 
 void DLLEXPORT
@@ -879,8 +887,8 @@ cleanup:
 }
 
 void DLLEXPORT
-nsConfigureRedMonPort (HWND hwndParent, int string_size, LPTSTR variables,
-                       stack_t **stacktop)
+nsConfigureRedirectedPort (HWND hwndParent, int string_size, LPTSTR variables,
+                           stack_t **stacktop)
 {
   DWORD dwNeeded, dwStatus, err;
   RECONFIG config;

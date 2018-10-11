@@ -30,7 +30,7 @@ The following are the suggested requirements for building with GCC:
 * ``unzip`` (Cygwin package; optional; for unpacking distribution)
 * ``zip`` (Cygwin package; optional; for creating distribution packages (``make dist``))
 
-Currently a patched version of Mingw-w64 5.0.0 is required for building. The
+Currently a patched version of Mingw-w64 5.0.4 is required for building. The
 required patch has been included in the source distribution.
 
 Cygwin Build Instructions
@@ -53,14 +53,14 @@ If no patching is required, building should be as simple as running:
 If patching is required, download the `Mingw-w64 sources`_ and unpack the
 downloaded files somewhere within your Cygwin ``/home/$USER`` directory.  Copy
 the supplied patch, ``mingw64-runtime-print-symbols.patch``, to the newly
-unpacked ``mingw-w64-v5.0.0`` directory and apply it using:
+unpacked ``mingw-w64-v5.0.4`` directory and apply it using:
 
  ``patch -p1 < mingw64-runtime-print-symbols.patch``
 
 Then build the mingw64 runtime using the following commands from within the
 same directory:
 
- ``./configure --host=i686-w64-mingw32 --prefix=/opt/mingw-w64-v5.0.0``
+ ``./configure --host=i686-w64-mingw32 --prefix=/opt/mingw-w64-v5.0.4``
 
  ``make``
 
@@ -69,7 +69,7 @@ same directory:
 After the patched mingw-w64 runtime has been installed, return to the
 nsisprinter directory and execute the command:
 
- ``make LDFLAGS=-L/opt/mingw-w64-v5.0.0/lib``
+ ``make LDFLAGS=-L/opt/mingw-w64-v5.0.4/lib``
 
 Example Usage
 -------------
@@ -278,6 +278,14 @@ Adds a printer driver defined by ``INIFILE``. The driver INI file format is
 documented under `Driver INI File Documentation`_. If an error occurs ``0``
 is returned and the error message remains on the stack.
 
+DeletePrinterDriver
+~~~~~~~~~~~~~~~~
+
+ Usage: ``${DeletePrinterDriver} NAME RET``
+
+Deletes the printer driver named ``NAME``. If an error occurs ``0`` is
+returned and the error message remains on the stack.
+
 ConfigureRedirectedPort
 ~~~~~~~~~~~~~~~~~~~
 
@@ -363,4 +371,4 @@ This plugin incorporates data structures from RedMon, which is Copyright (C)
 Ghostgum Software Pty Ltd. and also licensed under the GNU General Public
 License.
 
-.. _`Mingw-w64 sources`: https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v5.0.0.tar.bz2/download
+.. _`Mingw-w64 sources`: https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v5.0.4.tar.bz2/download

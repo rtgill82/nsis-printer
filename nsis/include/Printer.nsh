@@ -1,6 +1,6 @@
 ;
 ; Created:  Sat 30 Apr 2016 03:26:07 PM PDT
-; Modified: Sat 21 Apr 2018 07:21:00 PM PDT
+; Modified: Wed 10 Oct 2018 04:22:18 PM PDT
 ;
 ; Copyright 2016 (C) Robert Gill
 ;
@@ -297,6 +297,22 @@ Printer::nsAddPrinterDriver
 Pop ${_RET}
 !macroend
 !define AddPrinterDriver "!insertmacro _AddPrinterDriver"
+
+;;
+; DeletePrinterDriver
+; ~~~~~~~~~~~~~~~~
+;
+;  Usage: ``${DeletePrinterDriver} NAME RET``
+;
+; Deletes the printer driver named ``NAME``. If an error occurs ``0`` is
+; returned and the error message remains on the stack.
+;
+!macro _DeletePrinterDriver _NAME _RET
+Push "${_NAME}"
+Printer::nsDeletePrinterDriver
+Pop ${_RET}
+!macroend
+!define DeletePrinterDriver "!insertmacro _DeletePrinterDriver"
 
 ;;
 ; ConfigureRedirectedPort

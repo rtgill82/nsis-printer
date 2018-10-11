@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Sat 21 Apr 2018 07:21:54 PM PDT
+ * Modified: Wed 10 Oct 2018 04:19:45 PM PDT
  *
  * Copyright (C) 2014-2018 Robert Gill
  *
@@ -884,6 +884,30 @@ cleanup:
   cleanup_driverinfo (&di);
   GlobalFree (inifile);
   GlobalFree (driverdir);
+}
+
+void DLLEXPORT
+nsDeletePrinterDriver (HWND hwndParent, int string_size, LPTSTR variables,
+                       stack_t **stacktop)
+{
+  LPTSTR name;
+  DWORD err;
+
+  EXDLL_INIT ();
+  name = GlobalAlloc (GPTR, BUF_SIZE);
+  popstring (name);
+  if (!DeletePrinterDriverEx (NULL, NULL, name, DPD_DELETE_ALL_FILES, 0))
+    {
+      err = GetLastError ();
+      pusherrormessage (_T ("Unable to delete printer driver"), err);
+      pushint(0);
+      goto cleanup;
+    }
+
+  pushint (1);
+
+cleanup:
+  GlobalFree (name);
 }
 
 void DLLEXPORT

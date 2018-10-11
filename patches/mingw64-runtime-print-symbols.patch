@@ -1,7 +1,15 @@
-diff -ru mingw-w64-v5.0.0.orig/mingw-w64-crt/lib32/winspool.def mingw-w64-v5.0.0/mingw-w64-crt/lib32/winspool.def
---- mingw-w64-v5.0.0.orig/mingw-w64-crt/lib32/winspool.def	2016-10-17 05:07:12.000000000 -0700
-+++ mingw-w64-v5.0.0/mingw-w64-crt/lib32/winspool.def	2016-12-21 16:27:07.980341400 -0800
-@@ -115,6 +115,8 @@
+--- mingw-w64-v5.0.4.orig/mingw-w64-crt/lib32/winspool.def	2018-05-06 05:57:17.000000000 -0700
++++ mingw-w64-v5.0.4/mingw-w64-crt/lib32/winspool.def	2018-10-08 14:34:24.124433600 -0700
+@@ -50,6 +50,8 @@
+ DeletePrinterConnectionA@4
+ DeletePrinterConnectionW@4
+ DeletePrinterDriverA@12
++DeletePrinterDriverExA@20
++DeletePrinterDriverExW@20
+ DeletePrinterDriverW@12
+ DeletePrinterIC@4
+ DevQueryPrint@12
+@@ -115,6 +117,8 @@
  ResetPrinterW@8
  ScheduleJob@8
  SetAllocFailCount@20

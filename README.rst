@@ -30,8 +30,8 @@ The following are the suggested requirements for building with GCC:
 * ``unzip`` (Cygwin package; optional; for unpacking distribution)
 * ``zip`` (Cygwin package; optional; for creating distribution packages (``make dist``))
 
-Currently a patched version of Mingw-w64 5.0.4 is required for building. The
-required patch has been included in the source distribution.
+The ``mingw64-i686-runtime`` package should be at least version 6.0.0. This is
+the version included in recent releases of Cygwin.
 
 Cygwin Build Instructions
 -------------------------
@@ -40,36 +40,9 @@ Install `Cygwin <https://www.cygwin.com/>`_ including the
 ``mingw64-i686-gcc-core`` compiler package, which should pull in
 ``mingw64-i686-runtime``.
 
-Some required symbols may be missing from the ``mingw64-i686-runtime`` package
-distributed with Cygwin so installing a patched version of the runtime may be
-required in order to build the NSIS Printer DLL. As of this writing the version
-of ``mingw64-i686-runtime`` included with Cygwin was 5.0 and installing a
-patched version was necessary.
-
-If no patching is required, building should be as simple as running:
+Then building should be as simple as running:
 
   ``make``
-
-If patching is required, download the `Mingw-w64 sources`_ and unpack the
-downloaded files somewhere within your Cygwin ``/home/$USER`` directory.  Copy
-the supplied patch, ``mingw64-runtime-print-symbols.patch``, to the newly
-unpacked ``mingw-w64-v5.0.4`` directory and apply it using:
-
- ``patch -p1 < mingw64-runtime-print-symbols.patch``
-
-Then build the mingw64 runtime using the following commands from within the
-same directory:
-
- ``./configure --host=i686-w64-mingw32 --prefix=/opt/mingw-w64-v5.0.4``
-
- ``make``
-
- ``make install``
-
-After the patched mingw-w64 runtime has been installed, return to the
-nsisprinter directory and execute the command:
-
- ``make LDFLAGS=-L/opt/mingw-w64-v5.0.4/lib``
 
 Example Usage
 -------------

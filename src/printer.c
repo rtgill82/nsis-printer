@@ -1,6 +1,6 @@
 /*
  * Created:  Fri 12 Dec 2014 07:37:55 PM PST
- * Modified: Wed 10 Oct 2018 04:19:45 PM PDT
+ * Modified: Mon 09 Mar 2020 03:35:47 PM PDT
  *
  * Copyright (C) 2014-2018 Robert Gill
  *
@@ -964,6 +964,36 @@ cleanup:
   ClosePrinter (iface);
   GlobalFree (buf);
 }
+
+#ifdef _MSC_VER
+void DLLEXPORT
+nsInstallPrinterDriverPackage (HWND hwndParent, int string_size,
+                               LPTSTR variables, stack_t** stacktop)
+{
+    LPTSTR name;
+    HRESULT hresult;
+
+    EXDLL_INIT ();
+    name = GlobalAlloc (GPTR, BUF_SIZE);
+    popstring (name);
+
+    hresult = InstallPrinterDriverFromPackage (NULL, NULL, name, NULL,
+                                               IPDFP_COPY_ALL_FILES);
+
+    if (hresult != S_OK)
+    {
+        pusherrormessage (_T ("Unable to install printer driver package"),
+                          hresult);
+        pushint (0);
+        goto cleanup;
+    }
+
+    pushint (1);
+
+cleanup:
+    GlobalFree (name);
+}
+#endif
 
 BOOL WINAPI
 DllMain (HINSTANCE hinstDLL, DWORD fdwReadon, LPVOID lpvReserved)

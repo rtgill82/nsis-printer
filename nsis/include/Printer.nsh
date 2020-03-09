@@ -1,6 +1,6 @@
 ;
 ; Created:  Sat 30 Apr 2016 03:26:07 PM PDT
-; Modified: Wed 10 Oct 2018 04:22:18 PM PDT
+; Modified: Mon 09 Mar 2020 03:46:10 PM PDT
 ;
 ; Copyright 2016 (C) Robert Gill
 ;
@@ -192,7 +192,7 @@ Pop ${_RET}
 
 ;;
 ; DeleteLocalPort
-; ~~~~~~~~~~~~
+; ~~~~~~~~~~~~~~~
 ;
 ;  Usage: ``${DeleteLocalPort} PORTNAME RET``
 ;
@@ -210,7 +210,7 @@ Pop ${_RET}
 
 ;;
 ; AddRedirectedPort
-; ~~~~~~~~~~~~
+; ~~~~~~~~~~~~~~~~~
 ;
 ;  Usage: ``${AddRedirectedPort} PORTNAME RET``
 ;
@@ -300,7 +300,7 @@ Pop ${_RET}
 
 ;;
 ; DeletePrinterDriver
-; ~~~~~~~~~~~~~~~~
+; ~~~~~~~~~~~~~~~~~~~
 ;
 ;  Usage: ``${DeletePrinterDriver} NAME RET``
 ;
@@ -316,7 +316,7 @@ Pop ${_RET}
 
 ;;
 ; ConfigureRedirectedPort
-; ~~~~~~~~~~~~~~~~~~~
+; ~~~~~~~~~~~~~~~~~~~~~~~
 ;
 ;  Usage: ``${ConfigureRedirectedPort} NAME COMMAND RET``
 ;
@@ -334,5 +334,24 @@ Printer::nsConfigureRedirectedPort
 Pop ${_RET}
 !macroend
 !define ConfigureRedirectedPort "!insertmacro _ConfigureRedirectedPort"
+
+;;
+; InstallPrinterDriverPackage
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+;
+;  Usage: ``${InstallPrinterDriverPackage} NAME RET``
+;
+; Install one of the printer driver packages that are provided with Microsoft
+; Windows. For example, the *Generic / Text Only* driver package.
+;
+; **NOTICE**: This function is only available when compiled with
+;             MSVC / Visual Studio.
+;
+!macro _InstallPrinterDriverPackage _NAME _RET
+Push "${_NAME}"
+Printer::nsInstallPrinterDriverPackage
+Pop ${_RET}
+!macroend
+!define InstallPrinterDriverPackage "!insertmacro _InstallPrinterDriverPackage"
 
 !endif ; PRINTER_NSH

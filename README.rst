@@ -194,7 +194,7 @@ or ``0`` on failure. If a failure occurs then an error message remains on the
 stack.
 
 DeleteLocalPort
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
  Usage: ``${DeleteLocalPort} PORTNAME RET``
 
@@ -203,7 +203,7 @@ Deletes the local port ``PORTNAME``. A return value is returned in register
 then an error message remains on the stack.
 
 AddRedirectedPort
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
  Usage: ``${AddRedirectedPort} PORTNAME RET``
 
@@ -252,7 +252,7 @@ documented under `Driver INI File Documentation`_. If an error occurs ``0``
 is returned and the error message remains on the stack.
 
 DeletePrinterDriver
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
  Usage: ``${DeletePrinterDriver} NAME RET``
 
@@ -260,7 +260,7 @@ Deletes the printer driver named ``NAME``. If an error occurs ``0`` is
 returned and the error message remains on the stack.
 
 ConfigureRedirectedPort
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
  Usage: ``${ConfigureRedirectedPort} NAME COMMAND RET``
 
@@ -270,6 +270,17 @@ Configures a redirected port to redirect data to the specified command.
 the port. RedMon must have already been installed through some other means
 before this function can be called. If an error occurs ``0`` is returned and
 the error message remains on the stack.
+
+InstallPrinterDriverPackage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ Usage: ``${InstallPrinterDriverPackage} NAME RET``
+
+Install one of the printer driver packages that are provided with Microsoft
+Windows. For example, the *Generic / Text Only* driver package.
+
+**NOTICE**: This function is only available when compiled with
+            MSVC / Visual Studio.
 
 Driver INI File Documentation
 -----------------------------

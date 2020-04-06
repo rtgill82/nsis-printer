@@ -1,60 +1,30 @@
-NSIS Printer
-============
+= NSIS Printer
+Robert Gill <locke@sdf.org>
 
-The NSIS Printer plugin allows you to perform printer management from an NSIS
+The *NSIS Printer* plugin allows you to perform printer management from an NSIS
 installer. It supports functionality such as enumerating printers, adding a new
 printer, getting or setting the default printer, selecting a printer from the
-list of available printers, and adding a redirected printer port (`RedMon 1.9
-<http://pages.cs.wisc.edu/~ghost/redmon/>`_ required).
+list of available printers, and adding a redirected printer port
+(http://pages.cs.wisc.edu/~ghost/redmon/[RedMon 1.9] required).
 
-Requirements
-------------
+
+== Requirements
 
 The UNICODE plugin requires at least NSIS 3.0. The ASCII plugin should work
 with NSIS 2.xx. I haven't tested (much) at all with NSIS 2.xx, so if there are
 issues using the plugin with that version, let me know.
 
-Build Requirements
-------------------
 
-VS2015 project files have been included for building with VisualStudio.
-The following are the suggested requirements for building with GCC:
-
-* `Cygwin <https://www.cygwin.com/>`_
-* ``mingw64-i686-gcc-core`` (Cygwin package)
-* ``mingw64-i686-runtime`` (Cygwin package; pulled in automatically by
-  ``mingw64-i686-gcc-core``)
-* ``mingw64-i686-headers`` (Cygwin package; pulled in automatically by
-  ``mingw64-i686-gcc-core``)
-* ``make`` (Cygwin package)
-* ``unzip`` (Cygwin package; optional; for unpacking distribution)
-* ``zip`` (Cygwin package; optional; for creating distribution packages (``make dist``))
-
-The ``mingw64-i686-runtime`` package should be at least version 6.0.0. This is
-the version included in recent releases of Cygwin.
-
-Cygwin Build Instructions
--------------------------
-
-Install `Cygwin <https://www.cygwin.com/>`_ including the
-``mingw64-i686-gcc-core`` compiler package, which should pull in
-``mingw64-i686-runtime``.
-
-Then building should be as simple as running:
-
-  ``make``
-
-Example Usage
--------------
+== Example Usage
 
 The following examples provide a basic idea of how to use this plugin. All
-examples assume the inclusion of the ``logiclib.nsh`` header.
+examples assume the inclusion of the `logiclib.nsh` header.
 
-EnumPrinters Example
-~~~~~~~~~~~~~~~~~~~~
 
-.. code::
+=== EnumPrinters Example
 
+[source,nsis]
+----
   ${EnumPrinters} $R0
   ${If} $R0 == -1
     Pop $R0
@@ -68,12 +38,13 @@ EnumPrinters Example
     DetailPrint "  $0"
     IntOp $R0 $R0 - 1
   ${Loop}
+----
 
-AddPrinterDriver Example
-~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code::
+=== AddPrinterDriver Example
 
+[source,nsis]
+----
   ; In Main Section
   SetOutPath "$PLUGINSDIR"
   File /r "Driver Name"
@@ -84,59 +55,62 @@ AddPrinterDriver Example
     Pop $1
     DetailPrint "Error: $R0"
   ${EndIf}
+----
 
-AddPrinter Example
-~~~~~~~~~~~~~~~~~~
 
-.. code::
+=== AddPrinter Example
 
+[source,nsis]
+----
   ${AddPrinter} "Printer Name" "RPT1" "Driver Name" $R0
   ${If} $R0 == 0
     Pop $R0
     DetailPrint "Error: $R0"
     Abort
   ${EndIf}
+----
 
-API Documentation
------------------
+
+== API Documentation
 
 @API_DOCUMENTATION@
-Driver INI File Documentation
------------------------------
+
+
+== Driver INI File Documentation
 
 The driver INI file describes the files to be installed using the
-``AddPinterDriver`` function. It should be included in the same directory as
-the driver files it describes. The only required section it has is
-``[driver]``. The following are valid settings within the section.
+`AddPinterDriver` function. It should be included in the same directory as the
+driver files it describes. The only required section it has is `[driver]`. The
+following are valid settings within the section.
 
-- ``version``: This must be set to ``3``.
+- `version`: This must be set to `3`.
 
-- ``name``: Install the printer driver under this name. This is the name used
-  to reference the driver when using fuctions such as ``AddPrinter``.
+- `name`: Install the printer driver under this name. This is the name used
+  to reference the driver when using fuctions such as `AddPrinter`.
 
-- ``environment``: Must be ``Windows NT x86`` or  ``Windows x64`` depending on
+- `environment`: Must be `Windows NT x86` or  `Windows x64` depending on
   whether the driver is for a 32-bit or 64-bit architecture respectively.
 
-- ``driver``: The name of the drivers main DLL file.
+- `driver`: The name of the drivers main DLL file.
 
-- ``datafile``: The data file used by the driver.
+- `datafile`: The data file used by the driver.
 
-- ``configfile``: The DLL that presents the driver configuration UI.
+- `configfile`: The DLL that presents the driver configuration UI.
 
-- ``helpfile``: The help file for the driver.
+- `helpfile`: The help file for the driver.
 
-- ``depfiles``: Additional files used by the driver separated by
+- `depfiles`: Additional files used by the driver separated by
   semi-colons (;).
 
-Driver INI Example
-~~~~~~~~~~~~~~~~~~
 
-The following is an example of a driver INI file.  The ``depfiles`` setting
+== Driver INI Example
+
+The following is an example of a driver INI file.  The `depfiles` setting
 should be on a single line with items separated by semi-colons (;). It has been
 split across lines here for readability.
 
-::
-
+[source,ini]
+----
   [driver]
   version=3
   name=HP Color LaserJet 4550 PCL 5
@@ -151,9 +125,32 @@ split across lines here for readability.
     HPZIPR12.DLL;HPZIPT12.DLL;HPZISN12.DLL;HPBMIAPI.DLL;HPBMINI.DLL;
     HPBOID.DLL;HPBOIDPS.DLL;HPBPRO.DLL;HPBPROPS.DLL;HPEACLHN.HPI;
     UNIRES.DLL;STDNAMES.GPD;STDDTYPE.GDL;STDSCHEM.GDL;STDSCHMX.GDL;
+----
 
-LICENSE
--------
+
+== Build Requirements
+
+VS2019 project files have been included for building with VisualStudio.
+The following are the requirements for building with GCC:
+
+* https://www.cygwin.com/[Cygwin]
+* `mingw64-i686-gcc-core` (Cygwin package)
+* `make` (Cygwin package)
+* `unzip` or `p7zip` (Cygwin package; optional; for unpacking distribution)
+* `p7zip` (Cygwin package; optional; for creating distribution packages (`make dist`))
+
+
+== Cygwin Build Instructions
+
+Install https://www.cygwin.com/[Cygwin] including the `mingw64-i686-gcc-core`
+compiler package, which should pull in `mingw64-i686-runtime`.
+
+Then building should be as simple as running:
+
+  make
+
+
+== LICENSE
 
 Copyright (C) 2016,2020 Robert Gill
 
@@ -173,5 +170,3 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 This plugin incorporates data structures from RedMon, which is Copyright (C)
 Ghostgum Software Pty Ltd. and also licensed under the GNU General Public
 License.
-
-.. _`Mingw-w64 sources`: https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v5.0.4.tar.bz2/download

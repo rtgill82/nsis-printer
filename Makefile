@@ -1,6 +1,6 @@
 #
 # Created:  Sat 13 Dec 2014 05:07:48 PM PST
-# Modified: Thu 11 Oct 2018 02:44:23 PM PDT
+# Modified: Sun 05 Apr 2020 11:39:04 PM PDT
 #
 # Copyright 2016 (C) Robert Gill
 #
@@ -23,14 +23,13 @@ PACKAGE_VERSION = 1.1.1
 
 DISTFILE = $(PACKAGE)-$(PACKAGE_VERSION).zip
 DISTDIR = ./$(PACKAGE)-$(PACKAGE_VERSION)
+
 NSIS_HEADER = nsis/include/Printer.nsh
 
-all: readme
+all: README.asc
 	$(MAKE) -C src
 
-readme: README.rst
-
-README.rst: $(NSIS_HEADER) README.rst.in
+README.asc: $(NSIS_HEADER) README.asc.in
 	awk '/^;;/{f=1;next}/^[^;]/{f=0}f {print substr($$0,3)}' < $< | \
 		awk '/@API_DOCUMENTATION@/{ \
 			while(getline line < "-"){ \

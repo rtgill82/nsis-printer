@@ -1,5 +1,5 @@
 = NSIS Printer
-Robert Gill <locke@sdf.org>
+Robert Gill <rtgill82@gmail.com>
 
 The *NSIS Printer* plugin allows you to perform printer management from an NSIS
 installer. It supports functionality such as enumerating printers, adding a new
